@@ -1,0 +1,6 @@
+{
+  "files": [
+    {"path": "hosts/claude-code/.claude-plugin/plugin.json", "field": "version"},
+    {"path": "hosts/codex/.codex-plugin/plugin.json", "field": "version"}
+  ]
+}
