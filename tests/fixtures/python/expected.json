@@ -1,0 +1,10 @@
+[
+  {"id": "shapes.py#Shape", "kind": "class"},
+  {"id": "shapes.py#Shape.area", "kind": "method"},
+  {"id": "shapes.py#Circle", "kind": "class"},
+  {"id": "shapes.py#Circle.radius", "kind": "field"},
+  {"id": "shapes.py#Circle.__init__", "kind": "constructor"},
+  {"id": "shapes.py#Circle.center", "kind": "field"},
+  {"id": "shapes.py#Circle.scaled", "kind": "method"},
+  {"id": "shapes.py#make_circle", "kind": "function"}
+]

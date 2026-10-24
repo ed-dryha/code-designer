@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://code-designer.dev/schema/structure-model.schema.json",
+  "title": "Code Designer structure model",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generator", "root", "generatedAt", "status", "coverage", "symbols"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "pack", "source"],
+      "properties": {
+        "name": {"type": "string"},
+        "version": {"type": "string"},
+        "pack": {"type": ["string", "null"]},
+        "source": {"enum": ["tree-sitter", "agent"]}
+      }
+    },
+    "root": {"type": "string"},
+    "generatedAt": {"type": "string"},
+    "status": {"enum": ["complete", "partial", "unavailable"]},
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["files", "unavailable", "skipped"],
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "language", "parsed", "symbols", "hasErrors", "sha256", "provenance"],
+            "properties": {
+              "path": {"type": "string"},
+              "language": {"type": "string"},
+              "parsed": {"type": "boolean"},
+              "symbols": {"type": "integer", "minimum": 0},
+              "hasErrors": {"type": "boolean"},
+              "sha256": {"type": "string"},
+              "provenance": {"enum": ["tree-sitter", "agent"]}
+            }
+          }
+        },
+        "unavailable": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["language", "files", "reason"],
+            "properties": {
+              "language": {"type": "string"},
+              "files": {"type": "array", "items": {"type": "string"}},
+              "reason": {"enum": ["no-grammar", "download-failed", "no-runtime"]}
+            }
+          }
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "reason"],
+            "properties": {
+              "path": {"type": "string"},
+              "reason": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "symbols": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "name", "parent", "file", "span", "signature", "visibility",
+                     "static", "supertypes", "typeText", "provenance", "inferred", "hash"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["class", "interface", "enum", "struct", "trait", "record", "object",
+                            "method", "constructor", "function", "field", "property"]},
+          "name": {"type": "string"},
+          "parent": {"type": ["string", "null"]},
+          "file": {"type": "string"},
+          "span": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["startLine", "endLine"],
+            "properties": {
+              "startLine": {"type": "integer", "minimum": 1},
+              "endLine": {"type": "integer", "minimum": 1}
+            }
+          },
+          "signature": {"type": ["string", "null"]},
+          "visibility": {"enum": ["public", "protected", "private", "package", "internal", null]},
+          "static": {"type": "boolean"},
+          "supertypes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["relation", "name"],
+              "properties": {
+                "relation": {"type": "string"},
+                "name": {"type": "string"}
+              }
+            }
+          },
+          "typeText": {"type": ["string", "null"]},
+          "provenance": {"enum": ["tree-sitter", "agent"]},
+          "inferred": {"type": "boolean"},
+          "hash": {"type": ["string", "null"]},
+          "heuristic": {"type": "boolean"}
+        },
+        "if": {"properties": {"provenance": {"const": "tree-sitter"}}},
+        "then": {"properties": {"hash": {"type": "string"}, "inferred": {"const": false}}}
+      }
+    }
+  }
+}
