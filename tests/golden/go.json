@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "shapes.go",
+        "language": "go",
+        "parsed": true,
+        "symbols": 8,
+        "hasErrors": false,
+        "sha256": "e424dde156c4c8771b6761d4a2f5c6324a4bf63b181c06737258987616be2a89",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "shapes.go#Shape",
+      "kind": "interface",
+      "name": "Shape",
+      "parent": null,
+      "file": "shapes.go",
+      "span": {
+        "startLine": 3,
+        "endLine": 5
+      },
+      "signature": "Shape interface",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "cd397bd9193f"
+    },
+    {
+      "id": "shapes.go#Shape.Area",
+      "kind": "method",
+      "name": "Area",
+      "parent": "shapes.go#Shape",
+      "file": "shapes.go",
+      "span": {
+        "startLine": 4,
+        "endLine": 4
+      },
+      "signature": "Area() float64",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "3a979029a9d1"
+    },
+    {
+      "id": "shapes.go#Circle",
+      "kind": "struct",
+      "name": "Circle",
+      "parent": null,
+      "file": "shapes.go",
+      "span": {
+        "startLine": 7,
+        "endLine": 10
+      },
+      "signature": "Circle struct",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "32e55295a632"
+    },
+    {
+      "id": "shapes.go#Circle.Radius",
+      "kind": "field",
+      "name": "Radius",
+      "parent": "shapes.go#Circle",
+      "file": "shapes.go",
+      "span": {
+        "startLine": 8,
+        "endLine": 8
+      },
+      "signature": "Radius float64",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "float64",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "6fdbe67e2710"
+    },
+    {
+      "id": "shapes.go#Circle.Name",
+      "kind": "field",
+      "name": "Name",
+      "parent": "shapes.go#Circle",
+      "file": "shapes.go",
+      "span": {
+        "startLine": 9,
+        "endLine": 9
+      },
+      "signature": "Name string",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "string",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "92025bd82df6"
+    },
+    {
+      "id": "shapes.go#Circle.Area",
+      "kind": "method",
+      "name": "Area",
+      "parent": "shapes.go#Circle",
+      "file": "shapes.go",
+      "span": {
+        "startLine": 12,
+        "endLine": 14
+      },
+      "signature": "func (c Circle) Area() float64",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "fb48548e5138"
+    },
+    {
+      "id": "shapes.go#Circle.Scale",
+      "kind": "method",
+      "name": "Scale",
+      "parent": "shapes.go#Circle",
+      "file": "shapes.go",
+      "span": {
+        "startLine": 16,
+        "endLine": 18
+      },
+      "signature": "func (c *Circle) Scale(f float64)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "d93bdaecd0ff"
+    },
+    {
+      "id": "shapes.go#NewCircle",
+      "kind": "function",
+      "name": "NewCircle",
+      "parent": null,
+      "file": "shapes.go",
+      "span": {
+        "startLine": 20,
+        "endLine": 22
+      },
+      "signature": "func NewCircle(r float64) *Circle",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "211a148e2ce3"
+    }
+  ]
+}

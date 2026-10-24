@@ -1,0 +1,13 @@
+[
+  {"id": "Shapes.java#Shapes", "kind": "interface"},
+  {"id": "Shapes.java#Shapes.area", "kind": "method"},
+  {"id": "Shapes.java#Base", "kind": "class"},
+  {"id": "Shapes.java#Base.label", "kind": "field"},
+  {"id": "Shapes.java#Base.count", "kind": "field"},
+  {"id": "Shapes.java#Base.Base", "kind": "constructor"},
+  {"id": "Shapes.java#Base.scale(intfactor)", "kind": "method"},
+  {"id": "Shapes.java#Base.scale(doublefactor,Stringmode)", "kind": "method"},
+  {"id": "Shapes.java#Base.Inner", "kind": "class"},
+  {"id": "Shapes.java#Base.Inner.depth", "kind": "field"},
+  {"id": "Shapes.java#Color", "kind": "enum"}
+]

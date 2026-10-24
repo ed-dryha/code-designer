@@ -142,11 +142,18 @@ def build_symbols(raw, relpath, source):
                     and (t["node"].start_byte, t["node"].end_byte) != (s["node"].start_byte, s["node"].end_byte):
                 if best is None or t["node"].start_byte >= best["node"].start_byte:
                     best = t
+        if s.get("parent_override") is not None:  # hook-supplied parent (e.g. Go receiver methods)
+            best = s["parent_override"]
         s["_parent"] = best
-    # qualified paths need parents resolved first (raw sorted by start so parents precede children)
+
+    def qual_of(s):
+        if "_qual" not in s:
+            p = s["_parent"]
+            s["_qual"] = (qual_of(p) + "." if p else "") + s["name"]
+        return s["_qual"]
+
     for s in raw:
-        p = s["_parent"]
-        s["_qual"] = (p["_qual"] + "." if p else "") + s["name"]
+        qual_of(s)
     # overload / collision disambiguation
     groups = {}
     for s in raw:

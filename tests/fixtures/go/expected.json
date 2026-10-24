@@ -1,0 +1,10 @@
+[
+  {"id": "shapes.go#Shape", "kind": "interface"},
+  {"id": "shapes.go#Shape.Area", "kind": "method"},
+  {"id": "shapes.go#Circle", "kind": "struct"},
+  {"id": "shapes.go#Circle.Radius", "kind": "field"},
+  {"id": "shapes.go#Circle.Name", "kind": "field"},
+  {"id": "shapes.go#Circle.Area", "kind": "method"},
+  {"id": "shapes.go#Circle.Scale", "kind": "method"},
+  {"id": "shapes.go#NewCircle", "kind": "function"}
+]

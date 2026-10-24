@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "Shapes.java",
+        "language": "java",
+        "parsed": true,
+        "symbols": 11,
+        "hasErrors": false,
+        "sha256": "79afd2b2f00ff08a565bbd53ea6cfc852a74aacd7b13f457bf8e7b5a68ed7049",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "Shapes.java#Shapes",
+      "kind": "interface",
+      "name": "Shapes",
+      "parent": null,
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 3,
+        "endLine": 5
+      },
+      "signature": "public interface Shapes",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b64af21d5164"
+    },
+    {
+      "id": "Shapes.java#Shapes.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "Shapes.java#Shapes",
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 4,
+        "endLine": 4
+      },
+      "signature": "double area();",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "c67a87391811"
+    },
+    {
+      "id": "Shapes.java#Base",
+      "kind": "class",
+      "name": "Base",
+      "parent": null,
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 7,
+        "endLine": 24
+      },
+      "signature": "abstract class Base implements Shapes",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "3616b298a848"
+    },
+    {
+      "id": "Shapes.java#Base.label",
+      "kind": "field",
+      "name": "label",
+      "parent": "Shapes.java#Base",
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 8,
+        "endLine": 8
+      },
+      "signature": "protected String label;",
+      "visibility": "protected",
+      "static": false,
+      "supertypes": [],
+      "typeText": "String",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "a04800056556"
+    },
+    {
+      "id": "Shapes.java#Base.count",
+      "kind": "field",
+      "name": "count",
+      "parent": "Shapes.java#Base",
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 9,
+        "endLine": 9
+      },
+      "signature": "public static int count = 0;",
+      "visibility": "public",
+      "static": true,
+      "supertypes": [],
+      "typeText": "int",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "c519340533eb"
+    },
+    {
+      "id": "Shapes.java#Base.Base",
+      "kind": "constructor",
+      "name": "Base",
+      "parent": "Shapes.java#Base",
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 11,
+        "endLine": 13
+      },
+      "signature": "Base(String label)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "aeded5197941"
+    },
+    {
+      "id": "Shapes.java#Base.scale(intfactor)",
+      "kind": "method",
+      "name": "scale",
+      "parent": "Shapes.java#Base",
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 15,
+        "endLine": 16
+      },
+      "signature": "public void scale(int factor)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "d1dc27bae54e"
+    },
+    {
+      "id": "Shapes.java#Base.scale(doublefactor,Stringmode)",
+      "kind": "method",
+      "name": "scale",
+      "parent": "Shapes.java#Base",
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 18,
+        "endLine": 19
+      },
+      "signature": "public void scale(double factor, String mode)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "bc463e27c588"
+    },
+    {
+      "id": "Shapes.java#Base.Inner",
+      "kind": "class",
+      "name": "Inner",
+      "parent": "Shapes.java#Base",
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 21,
+        "endLine": 23
+      },
+      "signature": "static class Inner",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "df53cf4fa3f7"
+    },
+    {
+      "id": "Shapes.java#Base.Inner.depth",
+      "kind": "field",
+      "name": "depth",
+      "parent": "Shapes.java#Base.Inner",
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 22,
+        "endLine": 22
+      },
+      "signature": "private int depth;",
+      "visibility": "private",
+      "static": false,
+      "supertypes": [],
+      "typeText": "int",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "9c289fa9d801"
+    },
+    {
+      "id": "Shapes.java#Color",
+      "kind": "enum",
+      "name": "Color",
+      "parent": null,
+      "file": "Shapes.java",
+      "span": {
+        "startLine": 26,
+        "endLine": 29
+      },
+      "signature": "enum Color",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "35ff78bce2c3"
+    }
+  ]
+}
