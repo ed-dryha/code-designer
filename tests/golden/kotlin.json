@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "Shapes.kt",
+        "language": "kotlin",
+        "parsed": true,
+        "symbols": 15,
+        "hasErrors": false,
+        "sha256": "fd95f8b6343f27afbf9d5f2fcaed0de7366144a4680ad7167fc7ceb8d9ef2696",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "Shapes.kt#Shape",
+      "kind": "interface",
+      "name": "Shape",
+      "parent": null,
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 3,
+        "endLine": 5
+      },
+      "signature": "interface Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "dff79d928faa"
+    },
+    {
+      "id": "Shapes.kt#Shape.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "Shapes.kt#Shape",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 4,
+        "endLine": 4
+      },
+      "signature": "fun area(): Double",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "1abe097c638b"
+    },
+    {
+      "id": "Shapes.kt#Base",
+      "kind": "class",
+      "name": "Base",
+      "parent": null,
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 7,
+        "endLine": 16
+      },
+      "signature": "open class Base(val label: String, var count: Int, size: Int) : Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "Shape"
+        }
+      ],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "196c1620c41c"
+    },
+    {
+      "id": "Shapes.kt#Base.count",
+      "kind": "field",
+      "name": "count",
+      "parent": "Shapes.kt#Base",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 7,
+        "endLine": 7
+      },
+      "signature": "var count: Int",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "Int",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "7dbd58d21b08"
+    },
+    {
+      "id": "Shapes.kt#Base.label",
+      "kind": "field",
+      "name": "label",
+      "parent": "Shapes.kt#Base",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 7,
+        "endLine": 7
+      },
+      "signature": "val label: String",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "String",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "83f1df0f2388"
+    },
+    {
+      "id": "Shapes.kt#Base.tag",
+      "kind": "field",
+      "name": "tag",
+      "parent": "Shapes.kt#Base",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 8,
+        "endLine": 8
+      },
+      "signature": "private val tag: String = \"t\"",
+      "visibility": "private",
+      "static": false,
+      "supertypes": [],
+      "typeText": "String",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "3ae77c4b9c91"
+    },
+    {
+      "id": "Shapes.kt#Base.extra",
+      "kind": "field",
+      "name": "extra",
+      "parent": "Shapes.kt#Base",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 9,
+        "endLine": 9
+      },
+      "signature": "var extra: Int = 0",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "Int",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "727d55944e4b"
+    },
+    {
+      "id": "Shapes.kt#Base.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "Shapes.kt#Base",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 11,
+        "endLine": 11
+      },
+      "signature": "override fun area(): Double = 0.0",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "8740b589e6fd"
+    },
+    {
+      "id": "Shapes.kt#Base.scale",
+      "kind": "method",
+      "name": "scale",
+      "parent": "Shapes.kt#Base",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 13,
+        "endLine": 15
+      },
+      "signature": "fun scale(factor: Int): Int",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b40a2a40b17c"
+    },
+    {
+      "id": "Shapes.kt#Point",
+      "kind": "class",
+      "name": "Point",
+      "parent": null,
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 18,
+        "endLine": 18
+      },
+      "signature": "data class Point(val x: Int, val y: Int)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "23cff6b3a049"
+    },
+    {
+      "id": "Shapes.kt#Point.x",
+      "kind": "field",
+      "name": "x",
+      "parent": "Shapes.kt#Point",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 18,
+        "endLine": 18
+      },
+      "signature": "val x: Int",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "Int",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "9d057adb5c94"
+    },
+    {
+      "id": "Shapes.kt#Point.y",
+      "kind": "field",
+      "name": "y",
+      "parent": "Shapes.kt#Point",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 18,
+        "endLine": 18
+      },
+      "signature": "val y: Int",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "Int",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "08ec153e319e"
+    },
+    {
+      "id": "Shapes.kt#Registry",
+      "kind": "object",
+      "name": "Registry",
+      "parent": null,
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 20,
+        "endLine": 22
+      },
+      "signature": "object Registry",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "57753150adf8"
+    },
+    {
+      "id": "Shapes.kt#Registry.register",
+      "kind": "method",
+      "name": "register",
+      "parent": "Shapes.kt#Registry",
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 21,
+        "endLine": 21
+      },
+      "signature": "fun register() {}",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "d5a0c2d8035a"
+    },
+    {
+      "id": "Shapes.kt#helper",
+      "kind": "function",
+      "name": "helper",
+      "parent": null,
+      "file": "Shapes.kt",
+      "span": {
+        "startLine": 24,
+        "endLine": 26
+      },
+      "signature": "fun helper(a: Int): Int",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "cdd94182e870"
+    }
+  ]
+}

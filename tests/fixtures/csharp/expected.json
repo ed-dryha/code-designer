@@ -1,0 +1,16 @@
+[
+  {"id": "Shapes.cs#IShape", "kind": "interface"},
+  {"id": "Shapes.cs#IShape.Area", "kind": "method"},
+  {"id": "Shapes.cs#Base", "kind": "class"},
+  {"id": "Shapes.cs#Base.label", "kind": "field"},
+  {"id": "Shapes.cs#Base.Count", "kind": "field"},
+  {"id": "Shapes.cs#Base.Name", "kind": "property"},
+  {"id": "Shapes.cs#Base.Base", "kind": "constructor"},
+  {"id": "Shapes.cs#Base.Area", "kind": "method"},
+  {"id": "Shapes.cs#Base.Scale(intfactor)", "kind": "method"},
+  {"id": "Shapes.cs#Base.Scale(doublefactor,stringmode)", "kind": "method"},
+  {"id": "Shapes.cs#Base.Reset", "kind": "method"},
+  {"id": "Shapes.cs#Base.Inner", "kind": "class"},
+  {"id": "Shapes.cs#Base.Inner.Depth", "kind": "field"},
+  {"id": "Shapes.cs#Point", "kind": "record"}
+]

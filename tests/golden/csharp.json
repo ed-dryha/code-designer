@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "Shapes.cs",
+        "language": "csharp",
+        "parsed": true,
+        "symbols": 14,
+        "hasErrors": false,
+        "sha256": "fd8bc65a43c533dc4e865d463b4281fc75a5a9afe3cdf30f7d28bb33b64184d4",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "Shapes.cs#IShape",
+      "kind": "interface",
+      "name": "IShape",
+      "parent": null,
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 3,
+        "endLine": 6
+      },
+      "signature": "public interface IShape",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "118a721f8c10"
+    },
+    {
+      "id": "Shapes.cs#IShape.Area",
+      "kind": "method",
+      "name": "Area",
+      "parent": "Shapes.cs#IShape",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 5,
+        "endLine": 5
+      },
+      "signature": "double Area();",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "0778efbf3578"
+    },
+    {
+      "id": "Shapes.cs#Base",
+      "kind": "class",
+      "name": "Base",
+      "parent": null,
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 8,
+        "endLine": 31
+      },
+      "signature": "public class Base : IShape",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "IShape"
+        }
+      ],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "32a76d246b5a"
+    },
+    {
+      "id": "Shapes.cs#Base.label",
+      "kind": "field",
+      "name": "label",
+      "parent": "Shapes.cs#Base",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 10,
+        "endLine": 10
+      },
+      "signature": "private string label;",
+      "visibility": "private",
+      "static": false,
+      "supertypes": [],
+      "typeText": "string",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b2d308836ee2"
+    },
+    {
+      "id": "Shapes.cs#Base.Count",
+      "kind": "field",
+      "name": "Count",
+      "parent": "Shapes.cs#Base",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 11,
+        "endLine": 11
+      },
+      "signature": "public static int Count;",
+      "visibility": "public",
+      "static": true,
+      "supertypes": [],
+      "typeText": "int",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "ae72cc9eb027"
+    },
+    {
+      "id": "Shapes.cs#Base.Name",
+      "kind": "property",
+      "name": "Name",
+      "parent": "Shapes.cs#Base",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 12,
+        "endLine": 12
+      },
+      "signature": "public string Name { get; set; }",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": "string",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "db512996a8ee"
+    },
+    {
+      "id": "Shapes.cs#Base.Base",
+      "kind": "constructor",
+      "name": "Base",
+      "parent": "Shapes.cs#Base",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 14,
+        "endLine": 17
+      },
+      "signature": "public Base(string label)",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b72e7a8e28d0"
+    },
+    {
+      "id": "Shapes.cs#Base.Area",
+      "kind": "method",
+      "name": "Area",
+      "parent": "Shapes.cs#Base",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 19,
+        "endLine": 19
+      },
+      "signature": "public double Area()",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "c589aacafbdf"
+    },
+    {
+      "id": "Shapes.cs#Base.Scale(intfactor)",
+      "kind": "method",
+      "name": "Scale",
+      "parent": "Shapes.cs#Base",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 21,
+        "endLine": 21
+      },
+      "signature": "public int Scale(int factor)",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b0d531ccc4fc"
+    },
+    {
+      "id": "Shapes.cs#Base.Scale(doublefactor,stringmode)",
+      "kind": "method",
+      "name": "Scale",
+      "parent": "Shapes.cs#Base",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 23,
+        "endLine": 23
+      },
+      "signature": "public double Scale(double factor, string mode)",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "708891743eb7"
+    },
+    {
+      "id": "Shapes.cs#Base.Reset",
+      "kind": "method",
+      "name": "Reset",
+      "parent": "Shapes.cs#Base",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 25,
+        "endLine": 25
+      },
+      "signature": "public static void Reset()",
+      "visibility": "public",
+      "static": true,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "45a7977ed63c"
+    },
+    {
+      "id": "Shapes.cs#Base.Inner",
+      "kind": "class",
+      "name": "Inner",
+      "parent": "Shapes.cs#Base",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 27,
+        "endLine": 30
+      },
+      "signature": "public class Inner",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "1a162717b772"
+    },
+    {
+      "id": "Shapes.cs#Base.Inner.Depth",
+      "kind": "field",
+      "name": "Depth",
+      "parent": "Shapes.cs#Base.Inner",
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 29,
+        "endLine": 29
+      },
+      "signature": "public int Depth;",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": "int",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "2eadca3759d5"
+    },
+    {
+      "id": "Shapes.cs#Point",
+      "kind": "record",
+      "name": "Point",
+      "parent": null,
+      "file": "Shapes.cs",
+      "span": {
+        "startLine": 33,
+        "endLine": 33
+      },
+      "signature": "public record Point(int X, int Y);",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "34724cbab74d"
+    }
+  ]
+}

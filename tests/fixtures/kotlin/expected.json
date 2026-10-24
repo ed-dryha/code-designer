@@ -1,0 +1,16 @@
+[
+  {"id": "Shapes.kt#Shape", "kind": "interface"},
+  {"id": "Shapes.kt#Shape.area", "kind": "method"},
+  {"id": "Shapes.kt#Base", "kind": "class"},
+  {"id": "Shapes.kt#Base.label", "kind": "field"},
+  {"id": "Shapes.kt#Base.count", "kind": "field"},
+  {"id": "Shapes.kt#Base.tag", "kind": "field"},
+  {"id": "Shapes.kt#Base.extra", "kind": "field"},
+  {"id": "Shapes.kt#Base.area", "kind": "method"},
+  {"id": "Shapes.kt#Base.scale", "kind": "method"},
+  {"id": "Shapes.kt#Point", "kind": "class"},
+  {"id": "Shapes.kt#Point.x", "kind": "field"},
+  {"id": "Shapes.kt#Registry", "kind": "object"},
+  {"id": "Shapes.kt#Registry.register", "kind": "method"},
+  {"id": "Shapes.kt#helper", "kind": "function"}
+]
