@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "shapes.js",
+        "language": "javascript",
+        "parsed": true,
+        "symbols": 6,
+        "hasErrors": false,
+        "sha256": "a05b55edbbd122cf9b576297727e05639d1a985df01bba94de9e6f09655ca7e5",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "shapes.js#Shape",
+      "kind": "class",
+      "name": "Shape",
+      "parent": null,
+      "file": "shapes.js",
+      "span": {
+        "startLine": 1,
+        "endLine": 12
+      },
+      "signature": "class Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "dffe5546fdd2"
+    },
+    {
+      "id": "shapes.js#Shape.name",
+      "kind": "field",
+      "name": "name",
+      "parent": "shapes.js#Shape",
+      "file": "shapes.js",
+      "span": {
+        "startLine": 2,
+        "endLine": 2
+      },
+      "signature": "name = \"shape\"",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "5b84c288251b"
+    },
+    {
+      "id": "shapes.js#Shape.count",
+      "kind": "field",
+      "name": "count",
+      "parent": "shapes.js#Shape",
+      "file": "shapes.js",
+      "span": {
+        "startLine": 3,
+        "endLine": 3
+      },
+      "signature": "static count = 0",
+      "visibility": null,
+      "static": true,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "7580bab0d179"
+    },
+    {
+      "id": "shapes.js#Shape.constructor",
+      "kind": "constructor",
+      "name": "constructor",
+      "parent": "shapes.js#Shape",
+      "file": "shapes.js",
+      "span": {
+        "startLine": 5,
+        "endLine": 7
+      },
+      "signature": "constructor(name)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "46664e2e297e"
+    },
+    {
+      "id": "shapes.js#Shape.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "shapes.js#Shape",
+      "file": "shapes.js",
+      "span": {
+        "startLine": 9,
+        "endLine": 11
+      },
+      "signature": "area()",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "247ad8cb7520"
+    },
+    {
+      "id": "shapes.js#makeShape",
+      "kind": "function",
+      "name": "makeShape",
+      "parent": null,
+      "file": "shapes.js",
+      "span": {
+        "startLine": 14,
+        "endLine": 16
+      },
+      "signature": "function makeShape(name)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "d9af65f7784c"
+    }
+  ]
+}

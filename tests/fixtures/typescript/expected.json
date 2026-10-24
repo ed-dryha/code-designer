@@ -1,0 +1,15 @@
+[
+  {"id": "shapes.ts#Shape", "kind": "interface"},
+  {"id": "shapes.ts#Shape.name", "kind": "field"},
+  {"id": "shapes.ts#Shape.area", "kind": "method"},
+  {"id": "shapes.ts#Kind", "kind": "enum"},
+  {"id": "shapes.ts#Base", "kind": "class"},
+  {"id": "shapes.ts#Base.name", "kind": "field"},
+  {"id": "shapes.ts#Base.count", "kind": "field"},
+  {"id": "shapes.ts#Base.id", "kind": "field"},
+  {"id": "shapes.ts#Base.constructor", "kind": "constructor"},
+  {"id": "shapes.ts#Base.area", "kind": "method"},
+  {"id": "shapes.ts#Base.scale(f:number)", "kind": "method"},
+  {"id": "shapes.ts#Base.handler", "kind": "method"},
+  {"id": "shapes.ts#makeBase", "kind": "function"}
+]

@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "shapes.ts",
+        "language": "typescript",
+        "parsed": true,
+        "symbols": 15,
+        "hasErrors": false,
+        "sha256": "9f6975c97bd6d847b1507f0725f2022299cdd025ddd5c45ad2a69398ba898090",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "shapes.ts#Shape",
+      "kind": "interface",
+      "name": "Shape",
+      "parent": null,
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 1,
+        "endLine": 4
+      },
+      "signature": "interface Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "764ebf2a7d8a"
+    },
+    {
+      "id": "shapes.ts#Shape.name",
+      "kind": "field",
+      "name": "name",
+      "parent": "shapes.ts#Shape",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 2,
+        "endLine": 2
+      },
+      "signature": "name: string",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "string",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "3fe91fb41414"
+    },
+    {
+      "id": "shapes.ts#Shape.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "shapes.ts#Shape",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 3,
+        "endLine": 3
+      },
+      "signature": "area(): number",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "239b261d009d"
+    },
+    {
+      "id": "shapes.ts#Kind",
+      "kind": "enum",
+      "name": "Kind",
+      "parent": null,
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 6,
+        "endLine": 9
+      },
+      "signature": "enum Kind",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "026999ee2669"
+    },
+    {
+      "id": "shapes.ts#Base",
+      "kind": "class",
+      "name": "Base",
+      "parent": null,
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 11,
+        "endLine": 29
+      },
+      "signature": "abstract class Base implements Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "2f5521fb2bf2"
+    },
+    {
+      "id": "shapes.ts#Base.name",
+      "kind": "field",
+      "name": "name",
+      "parent": "shapes.ts#Base",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 12,
+        "endLine": 12
+      },
+      "signature": "name: string = \"base\"",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "string",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "72e7fb12d21b"
+    },
+    {
+      "id": "shapes.ts#Base.count",
+      "kind": "field",
+      "name": "count",
+      "parent": "shapes.ts#Base",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 13,
+        "endLine": 13
+      },
+      "signature": "private static count: number = 0",
+      "visibility": "private",
+      "static": true,
+      "supertypes": [],
+      "typeText": "number",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "769de323d3b8"
+    },
+    {
+      "id": "shapes.ts#Base.id",
+      "kind": "field",
+      "name": "id",
+      "parent": "shapes.ts#Base",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 14,
+        "endLine": 14
+      },
+      "signature": "readonly id = 1",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "9694df8569a8"
+    },
+    {
+      "id": "shapes.ts#Base.constructor",
+      "kind": "constructor",
+      "name": "constructor",
+      "parent": "shapes.ts#Base",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 16,
+        "endLine": 18
+      },
+      "signature": "constructor(name: string)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "4ec194ec2fa5"
+    },
+    {
+      "id": "shapes.ts#Base.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "shapes.ts#Base",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 20,
+        "endLine": 20
+      },
+      "signature": "abstract area(): number",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "9c82c90e145b"
+    },
+    {
+      "id": "shapes.ts#Base.scale(f:number)",
+      "kind": "method",
+      "name": "scale",
+      "parent": "shapes.ts#Base",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 22,
+        "endLine": 22
+      },
+      "signature": "scale(f: number): number",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "ea5fd8acb475"
+    },
+    {
+      "id": "shapes.ts#Base.scale(f:string)",
+      "kind": "method",
+      "name": "scale",
+      "parent": "shapes.ts#Base",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 23,
+        "endLine": 23
+      },
+      "signature": "scale(f: string): number",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "a8b961872b3e"
+    },
+    {
+      "id": "shapes.ts#Base.scale(f:any)",
+      "kind": "method",
+      "name": "scale",
+      "parent": "shapes.ts#Base",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 24,
+        "endLine": 26
+      },
+      "signature": "scale(f: any): number",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "84a3eb133550"
+    },
+    {
+      "id": "shapes.ts#Base.handler",
+      "kind": "method",
+      "name": "handler",
+      "parent": "shapes.ts#Base",
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 28,
+        "endLine": 28
+      },
+      "signature": "handler = (x: number) => x + 1",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b2e8ae158d28"
+    },
+    {
+      "id": "shapes.ts#makeBase",
+      "kind": "function",
+      "name": "makeBase",
+      "parent": null,
+      "file": "shapes.ts",
+      "span": {
+        "startLine": 31,
+        "endLine": 33
+      },
+      "signature": "function makeBase(name: string): Base",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "3751b1331d51"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+[
+  {"id": "shapes.js#Shape", "kind": "class"},
+  {"id": "shapes.js#Shape.name", "kind": "field"},
+  {"id": "shapes.js#Shape.count", "kind": "field"},
+  {"id": "shapes.js#Shape.constructor", "kind": "constructor"},
+  {"id": "shapes.js#Shape.area", "kind": "method"},
+  {"id": "shapes.js#makeShape", "kind": "function"}
+]
