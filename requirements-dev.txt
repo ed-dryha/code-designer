@@ -1,0 +1,7 @@
+# Canonical test command:
+#   uv run --with-requirements requirements-dev.txt python -m pytest
+tree-sitter-language-pack==1.22.1
+tree-sitter==0.26.0
+jsonschema==4.26.0
+PyYAML==6.0.3
+pytest==9.1.1

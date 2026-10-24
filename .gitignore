@@ -1,0 +1,6 @@
+.planning/
+.cd-cache/
+__pycache__/
+.venv/
+.pytest_cache/
+.code-designer/
