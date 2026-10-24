@@ -1,0 +1,302 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "shapes.rb",
+        "language": "ruby",
+        "parsed": true,
+        "symbols": 14,
+        "hasErrors": false,
+        "sha256": "8fedc090a43a84d591e29236db40ebeabd06e183804e2651ff5f30a1fbc24ae9",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "shapes.rb#Geometry",
+      "kind": "object",
+      "name": "Geometry",
+      "parent": null,
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 1,
+        "endLine": 31
+      },
+      "signature": "module Geometry",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "a76837ffeca0"
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape",
+      "kind": "class",
+      "name": "Shape",
+      "parent": "shapes.rb#Geometry",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 2,
+        "endLine": 24
+      },
+      "signature": "class Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "9728a7cafc66"
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape.color",
+      "kind": "field",
+      "name": "color",
+      "parent": "shapes.rb#Geometry.Shape",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 3,
+        "endLine": 3
+      },
+      "signature": ":color",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "ac472eada25f",
+      "heuristic": true
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape.label",
+      "kind": "field",
+      "name": "label",
+      "parent": "shapes.rb#Geometry.Shape",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 3,
+        "endLine": 3
+      },
+      "signature": ":label",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b6dfbe96cd8b",
+      "heuristic": true
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape.id",
+      "kind": "field",
+      "name": "id",
+      "parent": "shapes.rb#Geometry.Shape",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 4,
+        "endLine": 4
+      },
+      "signature": ":id",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "d0164bab65d1",
+      "heuristic": true
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape.initialize",
+      "kind": "constructor",
+      "name": "initialize",
+      "parent": "shapes.rb#Geometry.Shape",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 6,
+        "endLine": 9
+      },
+      "signature": "def initialize(label)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "1e5528c1a9f0"
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape.@area",
+      "kind": "field",
+      "name": "@area",
+      "parent": "shapes.rb#Geometry.Shape",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 8,
+        "endLine": 8
+      },
+      "signature": "@area = 0",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "5ef83edb70d9",
+      "heuristic": true
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "shapes.rb#Geometry.Shape",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 11,
+        "endLine": 13
+      },
+      "signature": "def area",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "e3f34a0a34ee"
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape.build",
+      "kind": "method",
+      "name": "build",
+      "parent": "shapes.rb#Geometry.Shape",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 15,
+        "endLine": 17
+      },
+      "signature": "def self.build(label)",
+      "visibility": null,
+      "static": true,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "757e3afc952d"
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape.Inner",
+      "kind": "class",
+      "name": "Inner",
+      "parent": "shapes.rb#Geometry.Shape",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 19,
+        "endLine": 23
+      },
+      "signature": "class Inner",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "d8a8b1ebde78"
+    },
+    {
+      "id": "shapes.rb#Geometry.Shape.Inner.depth",
+      "kind": "method",
+      "name": "depth",
+      "parent": "shapes.rb#Geometry.Shape.Inner",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 20,
+        "endLine": 22
+      },
+      "signature": "def depth",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "fd8b923de1c8"
+    },
+    {
+      "id": "shapes.rb#Geometry.Circle",
+      "kind": "class",
+      "name": "Circle",
+      "parent": "shapes.rb#Geometry",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 26,
+        "endLine": 30
+      },
+      "signature": "class Circle < Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "Shape"
+        }
+      ],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "cadb91852db8"
+    },
+    {
+      "id": "shapes.rb#Geometry.Circle.radius",
+      "kind": "method",
+      "name": "radius",
+      "parent": "shapes.rb#Geometry.Circle",
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 27,
+        "endLine": 29
+      },
+      "signature": "def radius",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "54daccd9194e"
+    },
+    {
+      "id": "shapes.rb#top_helper",
+      "kind": "function",
+      "name": "top_helper",
+      "parent": null,
+      "file": "shapes.rb",
+      "span": {
+        "startLine": 33,
+        "endLine": 35
+      },
+      "signature": "def top_helper(x)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "9332ffdc9488"
+    }
+  ]
+}

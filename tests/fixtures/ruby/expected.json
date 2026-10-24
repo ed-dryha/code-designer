@@ -1,0 +1,16 @@
+[
+  {"id": "shapes.rb#Geometry", "kind": "object"},
+  {"id": "shapes.rb#Geometry.Shape", "kind": "class"},
+  {"id": "shapes.rb#Geometry.Shape.label", "kind": "field"},
+  {"id": "shapes.rb#Geometry.Shape.color", "kind": "field"},
+  {"id": "shapes.rb#Geometry.Shape.id", "kind": "field"},
+  {"id": "shapes.rb#Geometry.Shape.initialize", "kind": "constructor"},
+  {"id": "shapes.rb#Geometry.Shape.@area", "kind": "field"},
+  {"id": "shapes.rb#Geometry.Shape.area", "kind": "method"},
+  {"id": "shapes.rb#Geometry.Shape.build", "kind": "method"},
+  {"id": "shapes.rb#Geometry.Shape.Inner", "kind": "class"},
+  {"id": "shapes.rb#Geometry.Shape.Inner.depth", "kind": "method"},
+  {"id": "shapes.rb#Geometry.Circle", "kind": "class"},
+  {"id": "shapes.rb#Geometry.Circle.radius", "kind": "method"},
+  {"id": "shapes.rb#top_helper", "kind": "function"}
+]

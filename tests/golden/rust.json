@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "shapes.rs",
+        "language": "rust",
+        "parsed": true,
+        "symbols": 10,
+        "hasErrors": false,
+        "sha256": "9ea6e2f060c833964ca29df7fb559079649096200f6e7329d87877c7ead36374",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "shapes.rs#Shape",
+      "kind": "trait",
+      "name": "Shape",
+      "parent": null,
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 1,
+        "endLine": 3
+      },
+      "signature": "pub trait Shape",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "742d44cdd6ff"
+    },
+    {
+      "id": "shapes.rs#Shape.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "shapes.rs#Shape",
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 2,
+        "endLine": 2
+      },
+      "signature": "fn area(&self) -> f64;",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "e73a31a7feb9"
+    },
+    {
+      "id": "shapes.rs#Circle",
+      "kind": "struct",
+      "name": "Circle",
+      "parent": null,
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 5,
+        "endLine": 8
+      },
+      "signature": "pub struct Circle",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "Shape"
+        }
+      ],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "26318492dc92"
+    },
+    {
+      "id": "shapes.rs#Circle.radius",
+      "kind": "field",
+      "name": "radius",
+      "parent": "shapes.rs#Circle",
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 6,
+        "endLine": 6
+      },
+      "signature": "pub radius: f64",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": "f64",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "76c767b474ef"
+    },
+    {
+      "id": "shapes.rs#Circle.name",
+      "kind": "field",
+      "name": "name",
+      "parent": "shapes.rs#Circle",
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 7,
+        "endLine": 7
+      },
+      "signature": "name: String",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "String",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "7d9c8471af73"
+    },
+    {
+      "id": "shapes.rs#Color",
+      "kind": "enum",
+      "name": "Color",
+      "parent": null,
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 10,
+        "endLine": 13
+      },
+      "signature": "pub enum Color",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "174f90b48b5d"
+    },
+    {
+      "id": "shapes.rs#Circle.new",
+      "kind": "method",
+      "name": "new",
+      "parent": "shapes.rs#Circle",
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 16,
+        "endLine": 18
+      },
+      "signature": "pub fn new(radius: f64) -> Circle",
+      "visibility": "public",
+      "static": true,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "f72395202e92"
+    },
+    {
+      "id": "shapes.rs#Circle.grow",
+      "kind": "method",
+      "name": "grow",
+      "parent": "shapes.rs#Circle",
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 20,
+        "endLine": 22
+      },
+      "signature": "pub fn grow(&mut self, by: f64)",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "0d6eb8c4ea18"
+    },
+    {
+      "id": "shapes.rs#Circle.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "shapes.rs#Circle",
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 26,
+        "endLine": 28
+      },
+      "signature": "fn area(&self) -> f64",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b2640e2b7483"
+    },
+    {
+      "id": "shapes.rs#helper",
+      "kind": "function",
+      "name": "helper",
+      "parent": null,
+      "file": "shapes.rs",
+      "span": {
+        "startLine": 31,
+        "endLine": 33
+      },
+      "signature": "pub fn helper(a: i32) -> i32",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "7cfaaa06c15a"
+    }
+  ]
+}

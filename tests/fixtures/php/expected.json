@@ -1,0 +1,13 @@
+[
+  {"id": "shapes.php#Shape", "kind": "interface"},
+  {"id": "shapes.php#Shape.area", "kind": "method"},
+  {"id": "shapes.php#Loggable", "kind": "trait"},
+  {"id": "shapes.php#Loggable.log", "kind": "method"},
+  {"id": "shapes.php#Base", "kind": "class"},
+  {"id": "shapes.php#Base.label", "kind": "field"},
+  {"id": "shapes.php#Base.count", "kind": "field"},
+  {"id": "shapes.php#Base.__construct", "kind": "constructor"},
+  {"id": "shapes.php#Base.area", "kind": "method"},
+  {"id": "shapes.php#Base.reset", "kind": "method"},
+  {"id": "shapes.php#helper", "kind": "function"}
+]

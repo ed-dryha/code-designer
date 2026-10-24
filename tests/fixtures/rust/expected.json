@@ -1,0 +1,12 @@
+[
+  {"id": "shapes.rs#Shape", "kind": "trait"},
+  {"id": "shapes.rs#Shape.area", "kind": "method"},
+  {"id": "shapes.rs#Circle", "kind": "struct"},
+  {"id": "shapes.rs#Circle.radius", "kind": "field"},
+  {"id": "shapes.rs#Circle.name", "kind": "field"},
+  {"id": "shapes.rs#Color", "kind": "enum"},
+  {"id": "shapes.rs#Circle.new", "kind": "method"},
+  {"id": "shapes.rs#Circle.grow", "kind": "method"},
+  {"id": "shapes.rs#Circle.area", "kind": "method"},
+  {"id": "shapes.rs#helper", "kind": "function"}
+]

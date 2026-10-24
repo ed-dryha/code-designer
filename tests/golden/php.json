@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "shapes.php",
+        "language": "php",
+        "parsed": true,
+        "symbols": 11,
+        "hasErrors": false,
+        "sha256": "5ca06357dfbb08716f29afac9a23f77757e278fa253bd07a2398a6d62c19656c",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "shapes.php#Shape",
+      "kind": "interface",
+      "name": "Shape",
+      "parent": null,
+      "file": "shapes.php",
+      "span": {
+        "startLine": 4,
+        "endLine": 6
+      },
+      "signature": "interface Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "ce53af3e6744"
+    },
+    {
+      "id": "shapes.php#Shape.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "shapes.php#Shape",
+      "file": "shapes.php",
+      "span": {
+        "startLine": 5,
+        "endLine": 5
+      },
+      "signature": "public function area(): float;",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "3254611019f1"
+    },
+    {
+      "id": "shapes.php#Loggable",
+      "kind": "trait",
+      "name": "Loggable",
+      "parent": null,
+      "file": "shapes.php",
+      "span": {
+        "startLine": 8,
+        "endLine": 10
+      },
+      "signature": "trait Loggable",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "bd074dc08ba6"
+    },
+    {
+      "id": "shapes.php#Loggable.log",
+      "kind": "method",
+      "name": "log",
+      "parent": "shapes.php#Loggable",
+      "file": "shapes.php",
+      "span": {
+        "startLine": 9,
+        "endLine": 9
+      },
+      "signature": "public function log(string $m): void",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "677854ebe787"
+    },
+    {
+      "id": "shapes.php#Base",
+      "kind": "class",
+      "name": "Base",
+      "parent": null,
+      "file": "shapes.php",
+      "span": {
+        "startLine": 12,
+        "endLine": 24
+      },
+      "signature": "abstract class Base implements Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "Shape"
+        }
+      ],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "ff5943391738"
+    },
+    {
+      "id": "shapes.php#Base.label",
+      "kind": "field",
+      "name": "label",
+      "parent": "shapes.php#Base",
+      "file": "shapes.php",
+      "span": {
+        "startLine": 14,
+        "endLine": 14
+      },
+      "signature": "protected string $label;",
+      "visibility": "protected",
+      "static": false,
+      "supertypes": [],
+      "typeText": "string",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "3119a746e889"
+    },
+    {
+      "id": "shapes.php#Base.count",
+      "kind": "field",
+      "name": "count",
+      "parent": "shapes.php#Base",
+      "file": "shapes.php",
+      "span": {
+        "startLine": 15,
+        "endLine": 15
+      },
+      "signature": "public static int $count = 0;",
+      "visibility": "public",
+      "static": true,
+      "supertypes": [],
+      "typeText": "int",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b55602170a34"
+    },
+    {
+      "id": "shapes.php#Base.__construct",
+      "kind": "constructor",
+      "name": "__construct",
+      "parent": "shapes.php#Base",
+      "file": "shapes.php",
+      "span": {
+        "startLine": 17,
+        "endLine": 19
+      },
+      "signature": "public function __construct(string $label)",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "9af02b8a812c"
+    },
+    {
+      "id": "shapes.php#Base.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "shapes.php#Base",
+      "file": "shapes.php",
+      "span": {
+        "startLine": 21,
+        "endLine": 21
+      },
+      "signature": "abstract public function area(): float;",
+      "visibility": "public",
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "e9cb67a8567d"
+    },
+    {
+      "id": "shapes.php#Base.reset",
+      "kind": "method",
+      "name": "reset",
+      "parent": "shapes.php#Base",
+      "file": "shapes.php",
+      "span": {
+        "startLine": 23,
+        "endLine": 23
+      },
+      "signature": "public static function reset(): void",
+      "visibility": "public",
+      "static": true,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "80ea94f6aa9e"
+    },
+    {
+      "id": "shapes.php#helper",
+      "kind": "function",
+      "name": "helper",
+      "parent": null,
+      "file": "shapes.php",
+      "span": {
+        "startLine": 26,
+        "endLine": 28
+      },
+      "signature": "function helper(int $a): int",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "deb0f0dcaf9f"
+    }
+  ]
+}
