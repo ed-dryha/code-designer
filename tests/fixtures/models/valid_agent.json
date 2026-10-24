@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "pack": null,
+    "source": "agent",
+    "version": "0.1.0"
+  },
+  "root": ".",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "shapes.py",
+        "language": "python",
+        "parsed": true,
+        "symbols": 8,
+        "hasErrors": false,
+        "sha256": "03b2930c15064ae446508cff8fc32d96ece5746a5f006333abbe8a93af664967",
+        "provenance": "agent"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "shapes.py#Shape",
+      "kind": "class",
+      "name": "Shape",
+      "parent": null,
+      "file": "shapes.py",
+      "span": {
+        "startLine": 1,
+        "endLine": 3
+      },
+      "signature": "class Shape",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "agent",
+      "inferred": true,
+      "hash": null
+    },
+    {
+      "id": "shapes.py#Shape.area",
+      "kind": "method",
+      "name": "area",
+      "parent": "shapes.py#Shape",
+      "file": "shapes.py",
+      "span": {
+        "startLine": 2,
+        "endLine": 3
+      },
+      "signature": "def area(self)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "agent",
+      "inferred": true,
+      "hash": null
+    },
+    {
+      "id": "shapes.py#Circle",
+      "kind": "class",
+      "name": "Circle",
+      "parent": null,
+      "file": "shapes.py",
+      "span": {
+        "startLine": 6,
+        "endLine": 15
+      },
+      "signature": "class Circle(Shape)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "Shape"
+        }
+      ],
+      "typeText": null,
+      "provenance": "agent",
+      "inferred": true,
+      "hash": null
+    },
+    {
+      "id": "shapes.py#Circle.radius",
+      "kind": "field",
+      "name": "radius",
+      "parent": "shapes.py#Circle",
+      "file": "shapes.py",
+      "span": {
+        "startLine": 7,
+        "endLine": 7
+      },
+      "signature": "radius: float = 1.0",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "float",
+      "provenance": "agent",
+      "inferred": true,
+      "hash": null
+    },
+    {
+      "id": "shapes.py#Circle.__init__",
+      "kind": "constructor",
+      "name": "__init__",
+      "parent": "shapes.py#Circle",
+      "file": "shapes.py",
+      "span": {
+        "startLine": 9,
+        "endLine": 10
+      },
+      "signature": "def __init__(self, radius)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "agent",
+      "inferred": true,
+      "hash": null
+    },
+    {
+      "id": "shapes.py#Circle.center",
+      "kind": "field",
+      "name": "center",
+      "parent": "shapes.py#Circle",
+      "file": "shapes.py",
+      "span": {
+        "startLine": 10,
+        "endLine": 10
+      },
+      "signature": "self.center = (0, 0)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "agent",
+      "inferred": true,
+      "hash": null,
+      "heuristic": true
+    },
+    {
+      "id": "shapes.py#Circle.scaled",
+      "kind": "method",
+      "name": "scaled",
+      "parent": "shapes.py#Circle",
+      "file": "shapes.py",
+      "span": {
+        "startLine": 12,
+        "endLine": 15
+      },
+      "signature": "def scaled(self, k)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "agent",
+      "inferred": true,
+      "hash": null
+    },
+    {
+      "id": "shapes.py#make_circle",
+      "kind": "function",
+      "name": "make_circle",
+      "parent": null,
+      "file": "shapes.py",
+      "span": {
+        "startLine": 18,
+        "endLine": 19
+      },
+      "signature": "def make_circle(r)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "agent",
+      "inferred": true,
+      "hash": null
+    }
+  ],
+  "generatedAt": "2026-10-24T00:00:00Z"
+}
