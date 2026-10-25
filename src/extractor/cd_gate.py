@@ -6,6 +6,7 @@
 """Hard evidence gate over a design doc (decision records).
 
 Usage: cd_gate.py <doc.md> --root DIR --model PATH [--kb DIR] [--tolerance N]
+[--backlog PATH]
 Exit codes: 0 all pass, 1 any fail, 2 usage/IO. Prints a JSON array of
 {record, check, status[, detail]} to stdout and "N/M checks pass" to stderr.
 """
@@ -149,7 +150,48 @@ def load_kb(kb):
     return ids
 
 
-def gate_record(rid, rec, root, symbols, kb, tolerance):
+TOUCHED_H = re.compile(r"^##\s+Backlog Findings Touched\s*$")
+FINDING_ID = re.compile(r"F-[A-Za-z0-9._-]+")
+
+
+def load_backlog(path):
+    """Map finding id -> status from a backlog.md (safe_load_all). Missing file -> None."""
+    if not path or not os.path.isfile(path):
+        return None
+    ids = {}
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for d in yaml.safe_load_all(fh.read()):
+                if isinstance(d, dict) and isinstance(d.get("id"), str):
+                    ids[d["id"]] = d.get("status")
+    except (OSError, yaml.YAMLError):
+        return {}
+    return ids
+
+
+def _finding_status(fid, backlog):
+    if not backlog or fid not in backlog:
+        return "unknown-finding"
+    return "resolved-finding" if backlog[fid] == "resolved" else "pass"
+
+
+def gate_touched(text, backlog):
+    """Cross-check ids listed under ## Backlog Findings Touched."""
+    sec = _section(text.split("\n"), TOUCHED_H)
+    res = []
+    for n, t in sec or []:
+        if not ANY_ITEM.match(t):
+            continue
+        m = FINDING_ID.search(t)
+        if not m:
+            continue
+        st = _finding_status(m.group(0), backlog)
+        res.append({"record": "backlog", "check": "touched-finding", "status": st, "line": n,
+                    **({} if st == "pass" else {"detail": m.group(0)})})
+    return res
+
+
+def gate_record(rid, rec, root, symbols, kb, tolerance, backlog=None):
     res = []
 
     def add(check, status, **extra):
@@ -173,6 +215,8 @@ def gate_record(rid, rec, root, symbols, kb, tolerance):
     ev = rec["evidence"]
     cites = [e for e in ev if isinstance(e, dict) and e.get("file")] if isinstance(ev, list) else []
     add("evidence", "pass" if cites else "no-evidence")
+    findings = [e["finding"] for e in ev if isinstance(e, dict) and isinstance(e.get("finding"), str)] \
+        if isinstance(ev, list) else []
     cited_syms = []
     for n, c in enumerate(cites):
         st, extra = cd_verify.check(root, c, symbols, tolerance)
@@ -186,6 +230,13 @@ def gate_record(rid, rec, root, symbols, kb, tolerance):
                 if (s.get("file") == c.get("file") and isinstance(c.get("startLine"), int)
                         and sp.get("startLine", 0) <= c["startLine"] and c.get("endLine", 0) <= sp.get("endLine", -1)):
                     cited_syms.append(s)
+
+    ok_cite = any(r["status"] == "pass" and r["check"].startswith("citation-") for r in res)
+    for fid in findings:
+        st = _finding_status(fid, backlog)
+        add("finding", st, **({} if st == "pass" else {"detail": fid}))
+    if findings:
+        add("finding-citation", "pass" if ok_cite else "finding-without-citation")
 
     if verdict == "adopt" and rec["candidate"] not in (None, "none"):
         cand = rec["candidate"]
@@ -218,6 +269,7 @@ def main(argv=None):
     ap.add_argument("--root", required=True)
     ap.add_argument("--model", required=True)
     ap.add_argument("--kb")
+    ap.add_argument("--backlog")
     ap.add_argument("--tolerance", type=int, default=0)
     args = ap.parse_args(sys.argv[1:] if argv is None else argv)
     root = os.path.realpath(args.root)
@@ -236,6 +288,8 @@ def main(argv=None):
         print("error: root must be a directory, tolerance >= 0", file=sys.stderr)
         return 2
     kb = load_kb(args.kb)
+    bl_path = args.backlog or os.path.join(root, "docs", "design", "backlog.md")
+    backlog = load_backlog(bl_path)
 
     results = []
     records = extract_records(text)
@@ -258,9 +312,10 @@ def main(argv=None):
             results.append({"record": hid, "check": "yaml", "status": "yaml-error", "line": start,
                             "detail": "record is not a mapping"})
             continue
-        results.extend(gate_record(rec.get("id", hid), rec, root, symbols, kb, args.tolerance))
+        results.extend(gate_record(rec.get("id", hid), rec, root, symbols, kb, args.tolerance, backlog))
 
     results.extend(gate_blast(text, root, args.tolerance))
+    results.extend(gate_touched(text, backlog))
 
     print(json.dumps(results, indent=2))
     bad = sum(1 for r in results if r["status"] != "pass")
