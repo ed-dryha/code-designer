@@ -20,3 +20,7 @@ func (c *Circle) Scale(f float64) {
 func NewCircle(r float64) *Circle {
 	return &Circle{Radius: r}
 }
+
+type Point struct {
+	X, Y float64
+}
