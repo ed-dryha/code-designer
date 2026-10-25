@@ -46,7 +46,7 @@ def test_host_specific_values(repo_root, tmp_path):
     cc = (out / "claude-code/skills/extract-structure/SKILL.md").read_text()
     cx = (out / "codex/skills/extract-structure/SKILL.md").read_text()
     assert "${CLAUDE_PLUGIN_ROOT}/scripts" in cc and "${CLAUDE_PLUGIN_DATA}" in cc
-    assert "$SKILL_DIR/scripts" in cx and "~/.cache/code-designer" in cx
+    assert "$SKILL_DIR/../extract-structure/scripts" in cx and "~/.cache/code-designer" in cx
     assert (out / "claude-code/scripts/cd_extract.py").is_file()
     assert (out / "claude-code/scripts/structure-model.schema.json").is_file()
     assert (out / "codex/skills/extract-structure/scripts/cd_extract.py").is_file()
@@ -136,3 +136,35 @@ def test_built_extractor_runs(repo_root, grammar_cache, tmp_path, rel):
     v = run_py(scripts / "cd_validate.py", model)
     assert v.returncode == 0, v.stdout + v.stderr
     assert any(s["id"] == "shapes.py#Circle" for s in json.loads(model.read_text())["symbols"])
+
+
+def test_codex_scripts_token_resolves_from_every_skill(repo_root, tmp_path):
+    import re
+    out = tmp_path / "dist"
+    assert build(repo_root, "--out", out).returncode == 0
+    skills = out / "codex" / "skills"
+    pat = re.compile(r"\$SKILL_DIR/\.\./extract-structure/scripts/([A-Za-z0-9_.\-]+)")
+    seen = 0
+    for md in skills.rglob("*.md"):
+        skill_dir = skills / md.relative_to(skills).parts[0]
+        for name in pat.findall(md.read_text()):
+            seen += 1
+            target = (skill_dir / ".." / "extract-structure" / "scripts" / name).resolve()
+            assert target.is_file(), f"{md}: {name}"
+    assert seen > 0
+
+
+def test_codex_scripts_token_resolves_from_every_skill(repo_root, tmp_path):
+    import re
+    out = tmp_path / "dist"
+    assert build(repo_root, "--out", out).returncode == 0
+    skills = out / "codex" / "skills"
+    pat = re.compile(r"\$SKILL_DIR/\.\./extract-structure/scripts/([A-Za-z0-9_.\-]+)")
+    seen = 0
+    for md in skills.rglob("*.md"):
+        skill_dir = skills / md.relative_to(skills).parts[0]
+        for name in pat.findall(md.read_text()):
+            seen += 1
+            target = (skill_dir / ".." / "extract-structure" / "scripts" / name).resolve()
+            assert target.is_file(), f"{md}: {name}"
+    assert seen > 0
