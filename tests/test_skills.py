@@ -46,3 +46,16 @@ def test_sandbox_build_includes_skills(repo_root, tmp_path):
         for name in ("design",):
             assert (out / host / "skills" / name / "SKILL.md").is_file()
             assert (out / host / "skills" / name / "RECORD-FORMAT.md").is_file()
+
+
+CD_SETUP_SKILLS = [SRC / n / "SKILL.md" for n in ("design", "assessment", "extract-structure")]
+
+
+@pytest.mark.parametrize("path", CD_SETUP_SKILLS, ids=lambda p: p.parent.name)
+def test_cd_setup_runs_under_uv(path):
+    text = path.read_text()
+    assert re.search(r"^\s*uv run --script \{\{SCRIPTS\}\}/cd_setup\.py", text, re.M)
+    for ln in text.splitlines():
+        if re.search(r"python3 \S*cd_setup\.py", ln):
+            assert "--bootstrap-venv" in ln, ln
+    assert "--bootstrap-venv" in text
