@@ -1,0 +1,1076 @@
+{
+ "schemaVersion": 1,
+ "symbols": [
+  {
+   "id": "pkg_a/big.py#Big",
+   "kind": "class",
+   "name": "Big",
+   "parent": null,
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m1",
+   "kind": "method",
+   "name": "m1",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m2",
+   "kind": "method",
+   "name": "m2",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m3",
+   "kind": "method",
+   "name": "m3",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m4",
+   "kind": "method",
+   "name": "m4",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m5",
+   "kind": "method",
+   "name": "m5",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m6",
+   "kind": "method",
+   "name": "m6",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m7",
+   "kind": "method",
+   "name": "m7",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m8",
+   "kind": "method",
+   "name": "m8",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m9",
+   "kind": "method",
+   "name": "m9",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m10",
+   "kind": "method",
+   "name": "m10",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m11",
+   "kind": "method",
+   "name": "m11",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m12",
+   "kind": "method",
+   "name": "m12",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m13",
+   "kind": "method",
+   "name": "m13",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m14",
+   "kind": "method",
+   "name": "m14",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m15",
+   "kind": "method",
+   "name": "m15",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m16",
+   "kind": "method",
+   "name": "m16",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m17",
+   "kind": "method",
+   "name": "m17",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m18",
+   "kind": "method",
+   "name": "m18",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m19",
+   "kind": "method",
+   "name": "m19",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m20",
+   "kind": "method",
+   "name": "m20",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m21",
+   "kind": "method",
+   "name": "m21",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m22",
+   "kind": "method",
+   "name": "m22",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m23",
+   "kind": "method",
+   "name": "m23",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/big.py#Big.m24",
+   "kind": "method",
+   "name": "m24",
+   "parent": "pkg_a/big.py#Big",
+   "file": "pkg_a/big.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok",
+   "kind": "class",
+   "name": "Ok",
+   "parent": null,
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m1",
+   "kind": "method",
+   "name": "m1",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m2",
+   "kind": "method",
+   "name": "m2",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m3",
+   "kind": "method",
+   "name": "m3",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m4",
+   "kind": "method",
+   "name": "m4",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m5",
+   "kind": "method",
+   "name": "m5",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m6",
+   "kind": "method",
+   "name": "m6",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m7",
+   "kind": "method",
+   "name": "m7",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m8",
+   "kind": "method",
+   "name": "m8",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/ok.py#Ok.m9",
+   "kind": "method",
+   "name": "m9",
+   "parent": "pkg_a/ok.py#Ok",
+   "file": "pkg_a/ok.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat",
+   "kind": "interface",
+   "name": "Fat",
+   "parent": null,
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_b/fat.py#Fat",
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat.m1",
+   "kind": "method",
+   "name": "m1",
+   "parent": "pkg_b/fat.py#Fat",
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat.m2",
+   "kind": "method",
+   "name": "m2",
+   "parent": "pkg_b/fat.py#Fat",
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat.m3",
+   "kind": "method",
+   "name": "m3",
+   "parent": "pkg_b/fat.py#Fat",
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat.m4",
+   "kind": "method",
+   "name": "m4",
+   "parent": "pkg_b/fat.py#Fat",
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat.m5",
+   "kind": "method",
+   "name": "m5",
+   "parent": "pkg_b/fat.py#Fat",
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat.m6",
+   "kind": "method",
+   "name": "m6",
+   "parent": "pkg_b/fat.py#Fat",
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat.m7",
+   "kind": "method",
+   "name": "m7",
+   "parent": "pkg_b/fat.py#Fat",
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/fat.py#Fat.m8",
+   "kind": "method",
+   "name": "m8",
+   "parent": "pkg_b/fat.py#Fat",
+   "file": "pkg_b/fat.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/thin.py#Thin",
+   "kind": "interface",
+   "name": "Thin",
+   "parent": null,
+   "file": "pkg_b/thin.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/thin.py#Thin.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_b/thin.py#Thin",
+   "file": "pkg_b/thin.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/thin.py#Thin.m1",
+   "kind": "method",
+   "name": "m1",
+   "parent": "pkg_b/thin.py#Thin",
+   "file": "pkg_b/thin.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/thin.py#Thin.m2",
+   "kind": "method",
+   "name": "m2",
+   "parent": "pkg_b/thin.py#Thin",
+   "file": "pkg_b/thin.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/base.py#Base",
+   "kind": "class",
+   "name": "Base",
+   "parent": null,
+   "file": "pkg_b/base.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/base.py#Base.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_b/base.py#Base",
+   "file": "pkg_b/base.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/base.py#Base.m1",
+   "kind": "method",
+   "name": "m1",
+   "parent": "pkg_b/base.py#Base",
+   "file": "pkg_b/base.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub0.py#Sub0",
+   "kind": "class",
+   "name": "Sub0",
+   "parent": null,
+   "file": "pkg_b/sub0.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [
+    {
+     "relation": "extends",
+     "name": "Base"
+    }
+   ],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub0.py#Sub0.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_b/sub0.py#Sub0",
+   "file": "pkg_b/sub0.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub1.py#Sub1",
+   "kind": "class",
+   "name": "Sub1",
+   "parent": null,
+   "file": "pkg_b/sub1.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [
+    {
+     "relation": "extends",
+     "name": "Base"
+    }
+   ],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub1.py#Sub1.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_b/sub1.py#Sub1",
+   "file": "pkg_b/sub1.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub2.py#Sub2",
+   "kind": "class",
+   "name": "Sub2",
+   "parent": null,
+   "file": "pkg_b/sub2.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [
+    {
+     "relation": "extends",
+     "name": "Base"
+    }
+   ],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub2.py#Sub2.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_b/sub2.py#Sub2",
+   "file": "pkg_b/sub2.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub3.py#Sub3",
+   "kind": "class",
+   "name": "Sub3",
+   "parent": null,
+   "file": "pkg_b/sub3.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [
+    {
+     "relation": "extends",
+     "name": "Base"
+    }
+   ],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub3.py#Sub3.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_b/sub3.py#Sub3",
+   "file": "pkg_b/sub3.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub4.py#Sub4",
+   "kind": "class",
+   "name": "Sub4",
+   "parent": null,
+   "file": "pkg_b/sub4.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [
+    {
+     "relation": "extends",
+     "name": "Base"
+    }
+   ],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub4.py#Sub4.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_b/sub4.py#Sub4",
+   "file": "pkg_b/sub4.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub5.py#Sub5",
+   "kind": "class",
+   "name": "Sub5",
+   "parent": null,
+   "file": "pkg_b/sub5.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [
+    {
+     "relation": "extends",
+     "name": "Base"
+    }
+   ],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_b/sub5.py#Sub5.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_b/sub5.py#Sub5",
+   "file": "pkg_b/sub5.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/one.py#Lonely",
+   "kind": "interface",
+   "name": "Lonely",
+   "parent": null,
+   "file": "pkg_a/one.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/one.py#Lonely.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_a/one.py#Lonely",
+   "file": "pkg_a/one.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/one.py#Lonely.m1",
+   "kind": "method",
+   "name": "m1",
+   "parent": "pkg_a/one.py#Lonely",
+   "file": "pkg_a/one.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/impl.py#OnlyImpl",
+   "kind": "class",
+   "name": "OnlyImpl",
+   "parent": null,
+   "file": "pkg_a/impl.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [
+    {
+     "relation": "implements",
+     "name": "Lonely"
+    }
+   ],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/impl.py#OnlyImpl.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_a/impl.py#OnlyImpl",
+   "file": "pkg_a/impl.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/unused.py#Orphan",
+   "kind": "interface",
+   "name": "Orphan",
+   "parent": null,
+   "file": "pkg_a/unused.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "agent-read",
+   "inferred": true
+  },
+  {
+   "id": "pkg_a/unused.py#Orphan.m0",
+   "kind": "method",
+   "name": "m0",
+   "parent": "pkg_a/unused.py#Orphan",
+   "file": "pkg_a/unused.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  },
+  {
+   "id": "pkg_a/unused.py#Orphan.m1",
+   "kind": "method",
+   "name": "m1",
+   "parent": "pkg_a/unused.py#Orphan",
+   "file": "pkg_a/unused.py",
+   "span": {
+    "startLine": 1,
+    "endLine": 2
+   },
+   "supertypes": [],
+   "provenance": "tree-sitter",
+   "inferred": false
+  }
+ ]
+}
