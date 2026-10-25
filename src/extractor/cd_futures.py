@@ -561,6 +561,76 @@ def cmd_show(a):
     return 0
 
 
+def _stale_one(root, p, warnings):
+    """Return a stale entry for one confirmed plan, or None."""
+    pid = p.get("id")
+    specs = []
+    for x in p.get("affected") or []:
+        sp = _safe_pathspec(x)
+        if sp is None:
+            warnings.append(f"{pid}: skipped unsafe affected entry")
+            continue
+        specs.append(f":(glob){sp}" if "*" in sp else sp)
+    if not specs:
+        return None
+    last = _dstr(p.get("lastConfirmed"))
+    sha = p.get("lastConfirmedCommit")
+    rng = None
+    if isinstance(sha, str) and sha:
+        if commit_exists(root, sha) and _git(root, "merge-base", "--is-ancestor", sha, "HEAD")[0] == 0:
+            rng = f"{sha}..HEAD"
+        else:
+            warnings.append(f"{pid}: lastConfirmedCommit unreachable, using lastConfirmed date")
+    if rng is None:
+        if not DATE_RE.match(last):
+            warnings.append(f"{pid}: no usable lastConfirmedCommit or lastConfirmed date")
+            return None
+        rng = f"--since={last}T00:00:00"
+    rc, out = _git(root, "log", rng, "--name-only", "--format=%x01%h%x09%cI%x09%s",
+                   "--", *specs, ":(exclude)docs/design")
+    if rc != 0:
+        warnings.append(f"{pid}: git log failed")
+        return None
+    commits, files = [], set()
+    for line in out.splitlines():
+        if line.startswith("\x01"):
+            parts = line[1:].split("\t", 2)
+            if len(parts) == 3:
+                commits.append({"hash": parts[0], "date": parts[1], "subject": parts[2][:120]})
+        elif line.strip():
+            files.add(line.strip())
+    if not commits:
+        return None
+    return {"id": pid, "lastConfirmed": last, "commits": commits, "files": sorted(files)}
+
+
+def cmd_stale(a):
+    result = {"stale": []}
+    warnings = []
+    root = os.path.realpath(a.root)
+    plans_path = a.plans or os.path.join(root, "docs", "design", "future-plans.md")
+    if not os.path.isabs(plans_path):
+        plans_path = os.path.join(root, plans_path)
+    try:
+        if not os.path.isfile(plans_path):
+            warnings.append("no future-plans file")
+        elif _git(root, "rev-parse", "--git-dir")[0] != 0:
+            warnings.append("root is not a git repository or git is unavailable")
+        else:
+            for p in load(plans_path)[1:]:
+                if isinstance(p, dict) and p.get("status") == "confirmed":
+                    e = _stale_one(root, p, warnings)
+                    if e:
+                        result["stale"].append(e)
+    except (PlansError, OSError, yaml.YAMLError, UnicodeDecodeError) as ex:
+        result["stale"] = []
+        warnings.append(f"plans file unreadable: {ex}")
+    if warnings:
+        result["warning"] = "; ".join(warnings)
+    print(json.dumps(result, indent=2))
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Future plans tool")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -581,12 +651,15 @@ def main(argv=None):
     p = sub.add_parser("show")
     p.add_argument("--root", required=True)
     p.add_argument("--plans")
+    p = sub.add_parser("stale")
+    p.add_argument("--root", required=True)
+    p.add_argument("--plans")
     try:
         a = ap.parse_args(sys.argv[1:] if argv is None else argv)
     except SystemExit:
         return 2
     return {"id": cmd_id, "propose": cmd_propose, "apply": cmd_apply,
-            "lint": cmd_lint, "show": cmd_show}[a.cmd](a)
+            "lint": cmd_lint, "show": cmd_show, "stale": cmd_stale}[a.cmd](a)
 
 
 if __name__ == "__main__":
