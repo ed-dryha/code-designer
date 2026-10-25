@@ -109,3 +109,41 @@ def test_unverified_none_found_passes(script, repo_root, repo, tmp_path):
     doc.write_text(head + "## Unverified / Possible\n\nNone found\n")
     r = _gate(script, repo_root, repo, doc)
     assert r.returncode == 0, r.stdout
+
+
+BACKLOG = FIX / "backlog.md"
+
+
+def _gate_bl(script, repo_root, repo, doc, backlog=BACKLOG):
+    args = [script, doc, "--root", repo, "--model", FIX / "model.json", "--kb", repo_root / "src" / "knowledge"]
+    if backlog is not None:
+        args += ["--backlog", backlog]
+    return run_py(*args)
+
+
+def test_finding_evidence_passes(script, repo_root, repo):
+    r = _gate_bl(script, repo_root, repo, FIX / "good-with-finding.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+@pytest.mark.parametrize("doc,status", [
+    ("bad-finding-unknown.md", "unknown-finding"),
+    ("bad-finding-resolved.md", "resolved-finding"),
+    ("bad-finding-only.md", "finding-without-citation"),
+    ("bad-touched-unknown.md", "unknown-finding"),
+])
+def test_bad_finding_docs_fail(script, repo_root, repo, doc, status):
+    r = _gate_bl(script, repo_root, repo, FIX / doc)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert status in _statuses(r)
+
+
+def test_finding_without_backlog_file_fails(script, repo_root, repo):
+    r = _gate_bl(script, repo_root, repo, FIX / "good-with-finding.md", backlog=None)
+    assert r.returncode == 1 and "unknown-finding" in _statuses(r)
+
+
+def test_no_finding_refs_pass_with_or_without_backlog(script, repo_root, repo):
+    assert _gate_bl(script, repo_root, repo, FIX / "good-adopt.md").returncode == 0
+    assert _gate_bl(script, repo_root, repo, FIX / "good-adopt.md", backlog=None).returncode == 0
+    assert _gate_bl(script, repo_root, repo, FIX / "good-touched-none.md").returncode == 0
