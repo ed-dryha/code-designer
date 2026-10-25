@@ -12,8 +12,10 @@ Build a validated structure model of the current repository. The model is regene
 1. Ensure grammars are available:
 
    ```
-   python3 ${CLAUDE_PLUGIN_ROOT}/scripts/cd_setup.py --cache-dir ${CLAUDE_PLUGIN_DATA} --detect .
+   uv run --script ${CLAUDE_PLUGIN_ROOT}/scripts/cd_setup.py --cache-dir ${CLAUDE_PLUGIN_DATA} --detect .
    ```
+
+   If `uv` is not installed, run `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/cd_setup.py --cache-dir ${CLAUDE_PLUGIN_DATA} --bootstrap-venv` once. It creates the pinned venv in the cache dir and prints its python; rerun cd_setup with `--detect .` using that python. On a cold grammar cache cd_extract exits 3 unless `--allow-download` is passed; the exit-3 handling below covers that case.
 
    Use `--status` to inspect the cache without downloading.
 
