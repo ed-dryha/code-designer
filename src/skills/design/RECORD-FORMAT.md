@@ -25,6 +25,15 @@ The design doc is `docs/design/<YYYY-MM-DD>-<feature-slug>-design.md`. The gate 
 |------|------|--------|-----------|
 | class | PaymentGateway | added | interface with charge(amount) |
 
+## Blast Radius
+Scope: grep over <n> model-covered files (<languages>); the model has no call/import edges.
+- pay/service.py:11 [model] `def refund(self, provider, amount):` sibling of the changed method
+- pay/service.py:21 [grep] `def helper(x):` name match
+
+## Unverified / Possible
+- pay/service.py:21 reason: common-name, caller unknown
+(or the sentence "None found")
+
 ## Handoff
 <next step: superpowers:writing-plans with this doc as Spec, or standalone note>
 ```
@@ -59,6 +68,7 @@ change_safety: "<which later changes stay local and which unrelated code is unto
 
 ## Rules
 
+- Blast Radius items are `- <path>:<line> [model|grep] <text>`; a backticked quote is verified on that line. See `BLAST-RADIUS.md`. Unverified items each need `reason:`.
 - Quotes use block scalars (`quote: |`) so colons and quotes in code survive YAML. Copy the quote from the file span read immediately before writing.
 - Every record lists a `do-nothing` alternative, written before the pattern option.
 - `no-pattern` is a valid, passing verdict: set `candidate: none` and explain why a local change is enough.

@@ -58,6 +58,11 @@ def test_good_no_pattern_passes(script, repo_root, repo):
     ("bad-missing-field.md", "missing-field"),
     ("bad-no-records.md", "no-records"),
     ("bad-path-escape.md", "path-escape"),
+    ("bad-blast-no-section.md", "blast-missing-section"),
+    ("bad-blast-no-unverified.md", "blast-missing-section"),
+    ("bad-blast-untagged.md", "blast-untagged"),
+    ("bad-blast-bad-citation.md", "blast-bad-citation"),
+    ("bad-blast-no-scope.md", "blast-no-scope"),
 ])
 def test_bad_docs_fail(script, repo_root, repo, doc, status):
     r = _gate(script, repo_root, repo, FIX / doc)
@@ -83,3 +88,24 @@ def test_oversize_doc_rejected(script, repo_root, repo, tmp_path):
     big = tmp_path / "big.md"
     big.write_text("x" * (1024 * 1024 + 1))
     assert _gate(script, repo_root, repo, big).returncode == 2
+
+
+def test_blast_good_docs_have_blast_checks(script, repo_root, repo):
+    out = json.loads(_gate(script, repo_root, repo, FIX / "good-adopt.md").stdout)
+    assert [x for x in out if x["check"].startswith("blast")]
+
+
+def test_unverified_item_needs_reason(script, repo_root, repo, tmp_path):
+    doc = tmp_path / "d.md"
+    doc.write_text((FIX / "good-no-pattern.md").read_text().replace(" reason: common-name", " common-name"))
+    r = _gate(script, repo_root, repo, doc)
+    assert r.returncode == 1 and "unverified-no-reason" in _statuses(r)
+
+
+def test_unverified_none_found_passes(script, repo_root, repo, tmp_path):
+    doc = tmp_path / "d.md"
+    text = (FIX / "good-no-pattern.md").read_text()
+    head = text[:text.index("## Unverified / Possible")]
+    doc.write_text(head + "## Unverified / Possible\n\nNone found\n")
+    r = _gate(script, repo_root, repo, doc)
+    assert r.returncode == 0, r.stdout

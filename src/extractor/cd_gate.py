@@ -56,6 +56,71 @@ def extract_records(text):
     return out
 
 
+BLAST_H = re.compile(r"^##\s+Blast Radius\s*$")
+UNV_H = re.compile(r"^##\s+Unverified / Possible\s*$")
+H2 = re.compile(r"^##\s+\S")
+ITEM = re.compile(r"^[-*]\s+(\S+?):(\d+)\s+\[(model|grep)\]\s+(.*)$")
+ANY_ITEM = re.compile(r"^[-*]\s+")
+TICK = re.compile(r"`([^`]+)`")
+
+
+def _section(lines, head):
+    """Return list of (line_no, text) in the first section matching head, or None."""
+    for i, ln in enumerate(lines):
+        if head.match(ln):
+            out = []
+            for j in range(i + 1, len(lines)):
+                if H2.match(lines[j]):
+                    break
+                out.append((j + 1, lines[j]))
+            return out
+    return None
+
+
+def gate_blast(text, root, tolerance):
+    """Check the Blast Radius and Unverified / Possible sections (D-05, D-06)."""
+    res = []
+
+    def add(check, status, **extra):
+        res.append({"record": "blast", "check": check, "status": status, **extra})
+
+    lines = text.split("\n")
+    blast = _section(lines, BLAST_H)
+    unv = _section(lines, UNV_H)
+    if blast is None:
+        add("blast-section", "blast-missing-section", detail="## Blast Radius")
+    if unv is None:
+        add("unverified-section", "blast-missing-section", detail="## Unverified / Possible")
+    if blast is not None:
+        scope = [t for _n, t in blast if t.startswith("Scope:")]
+        low = scope[0].lower() if scope else ""
+        ok = bool(scope) and "grep" in low and "no call/import edges" in low
+        add("blast-scope", "pass" if ok else "blast-no-scope")
+        for n, t in blast:
+            if not ANY_ITEM.match(t):
+                continue
+            m = ITEM.match(t)
+            if not m:
+                add("blast-item", "blast-untagged", line=n)
+                continue
+            line = int(m.group(2))
+            cit = {"file": m.group(1), "startLine": line, "endLine": line}
+            q = TICK.search(m.group(4))
+            if q:
+                cit["quote"] = q.group(1)
+            st, _extra = cd_verify.check(root, cit, None, tolerance)
+            add("blast-citation", "pass" if st == "pass" else "blast-bad-citation", line=n,
+                **({} if st == "pass" else {"detail": st}))
+    if unv is not None:
+        items = [(n, t) for n, t in unv if ANY_ITEM.match(t)]
+        if not items:
+            body = "\n".join(t for _n, t in unv)
+            add("unverified-empty", "pass" if "None found" in body else "unverified-empty")
+        for n, t in items:
+            add("unverified-item", "pass" if "reason:" in t else "unverified-no-reason", line=n)
+    return res
+
+
 def load_kb(kb):
     """Map KB id -> frontmatter dict."""
     ids = {}
@@ -194,6 +259,8 @@ def main(argv=None):
                             "detail": "record is not a mapping"})
             continue
         results.extend(gate_record(rec.get("id", hid), rec, root, symbols, kb, args.tolerance))
+
+    results.extend(gate_blast(text, root, args.tolerance))
 
     print(json.dumps(results, indent=2))
     bad = sum(1 for r in results if r["status"] != "pass")
