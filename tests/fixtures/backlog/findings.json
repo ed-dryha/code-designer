@@ -1,0 +1,56 @@
+[
+  {
+    "smell": "smell-god-class",
+    "principle": "principle-srp",
+    "symbol": "pkg_a/a.py#Big",
+    "evidence": [
+      {
+        "file": "pkg_a/a.py",
+        "startLine": 1,
+        "endLine": 6,
+        "quote": "class Big:\n    def one(self):",
+        "symbol": "pkg_a/a.py#Big"
+      }
+    ],
+    "impact": "Changing one method risks the others.",
+    "suggestion": "Split Big by responsibility.",
+    "priority": "High",
+    "rationale": "Central class touched by many changes."
+  },
+  {
+    "smell": "smell-long-method",
+    "principle": "principle-kiss",
+    "symbol": "pkg_a/a.py#Big.two",
+    "evidence": [
+      {
+        "file": "pkg_a/a.py",
+        "startLine": 5,
+        "endLine": 6,
+        "quote": "def two(self):",
+        "symbol": "pkg_a/a.py#Big.two"
+      }
+    ],
+    "impact": "Hard to change safely.",
+    "suggestion": "Extract helper.",
+    "priority": "Medium",
+    "rationale": "Moderate churn expected."
+  },
+  {
+    "smell": "smell-feature-envy",
+    "principle": "principle-srp",
+    "symbol": "pkg_b/b.py#Helper",
+    "evidence": [
+      {
+        "file": "pkg_b/b.py",
+        "startLine": 2,
+        "endLine": 3,
+        "quote": "return other.value + other.extra",
+        "symbol": "pkg_b/b.py#Helper"
+      }
+    ],
+    "impact": "Coupled to other's fields.",
+    "suggestion": "Move logic to other.",
+    "priority": "Low",
+    "rationale": "Small and isolated."
+  }
+]

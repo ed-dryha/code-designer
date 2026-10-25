@@ -1,0 +1,31 @@
+{
+  "symbols": [
+    {
+      "id": "pkg_a/a.py#Big",
+      "file": "pkg_a/a.py",
+      "span": {
+        "startLine": 1,
+        "endLine": 6
+      },
+      "hash": "b77f2a57a51c"
+    },
+    {
+      "id": "pkg_a/a.py#Big.two",
+      "file": "pkg_a/a.py",
+      "span": {
+        "startLine": 5,
+        "endLine": 6
+      },
+      "hash": "d69461880998"
+    },
+    {
+      "id": "pkg_b/b.py#Helper",
+      "file": "pkg_b/b.py",
+      "span": {
+        "startLine": 1,
+        "endLine": 3
+      },
+      "hash": "30f159861418"
+    }
+  ]
+}
