@@ -12,6 +12,7 @@ import datetime
 import importlib
 import json
 import os
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,6 +25,13 @@ GENERATOR_VERSION = "0.1.0"
 PACK_VERSION = "1.22.1"
 HERE = os.path.dirname(os.path.abspath(__file__))
 TYPE_SKIP = {"name", "supers"}
+# Source extensions we recognise but have no queries/grammar wiring for (reported, never silent).
+UNSUPPORTED_CODE_EXTS = {
+    ".ex": "elixir", ".exs": "elixir", ".scala": "scala", ".swift": "swift",
+    ".c": "c", ".h": "c", ".cpp": "cpp", ".cc": "cpp", ".hpp": "cpp",
+    ".dart": "dart", ".lua": "lua", ".hs": "haskell", ".clj": "clojure",
+    ".erl": "erlang", ".pl": "perl", ".r": "r", ".m": "objc",
+}
 VISIBILITY = ("public", "protected", "private", "internal", "package")
 
 
@@ -33,34 +41,106 @@ def parse_args(argv):
     ap.add_argument("--cache-dir")
     ap.add_argument("--allow-download", action="store_true")
     ap.add_argument("--out")
+    ap.add_argument("--max-bytes", type=int, default=MAX_BYTES)
     return ap.parse_args(argv)
 
 
-def walk_files(root):
-    files, skipped = [], []
-    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
-        keep = []
-        for d in sorted(dirnames):
-            if d in IGNORE_DIRS:
-                skipped.append({"path": os.path.relpath(os.path.join(dirpath, d), root), "reason": "ignored"})
-            else:
-                keep.append(d)
-        dirnames[:] = keep
-        for f in sorted(filenames):
-            full = os.path.join(dirpath, f)
-            rel = os.path.relpath(full, root).replace(os.sep, "/")
-            lang = language_for(f)
-            if lang is None:
+def git_lists(root):
+    """Return (visible, ignored) relative-path lists via git, or None when not in a work tree / no git."""
+    try:
+        inside = subprocess.run(["git", "-C", root, "rev-parse", "--is-inside-work-tree"],
+                                capture_output=True, text=True)
+        if inside.returncode != 0 or inside.stdout.strip() != "true":
+            return None
+        vis = subprocess.run(["git", "-C", root, "ls-files", "-co", "--exclude-standard", "-z"],
+                             capture_output=True)
+        ign = subprocess.run(["git", "-C", root, "ls-files", "-oi", "--exclude-standard", "-z"],
+                             capture_output=True)
+    except OSError:
+        return None
+    if vis.returncode != 0 or ign.returncode != 0:
+        return None
+
+    def split(b):
+        return sorted(x for x in b.decode("utf-8", errors="surrogateescape").split("\0") if x)
+    return split(vis.stdout), split(ign.stdout)
+
+
+def _inside(root, full):
+    real = os.path.realpath(full)
+    return real == root or real.startswith(root + os.sep)
+
+
+def _ignored_prefix(rel):
+    parts = rel.split("/")
+    for i, part in enumerate(parts[:-1]):
+        if part in IGNORE_DIRS:
+            return "/".join(parts[: i + 1])
+    return None
+
+
+def walk_files(root, max_bytes=MAX_BYTES):
+    """Discover source files. Returns (files, skipped, unsupported{language: [paths]})."""
+    files, skipped, unsupported = [], [], {}
+    seen_skip = set()
+
+    def skip(path, reason):
+        if (path, reason) not in seen_skip:
+            seen_skip.add((path, reason))
+            skipped.append({"path": path, "reason": reason})
+
+    def consider(rel, full):
+        if os.path.islink(full) and not _inside(root, full):
+            skip(rel, "symlink-escape")
+            return
+        ext = os.path.splitext(rel)[1].lower()
+        lang = language_for(rel)
+        if lang is None:
+            if ext in UNSUPPORTED_CODE_EXTS and os.path.isfile(full):
+                unsupported.setdefault(UNSUPPORTED_CODE_EXTS[ext], []).append(rel)
+            return
+        if not os.path.isfile(full):
+            return
+        if not _inside(root, full):
+            skip(rel, "symlink-escape")
+            return
+        if os.path.getsize(full) > max_bytes:
+            skip(rel, "too-large")
+            return
+        files.append((rel, full, lang))
+
+    listed = git_lists(root)
+    if listed is not None:
+        visible, ignored = listed
+        for rel in visible:
+            pre = _ignored_prefix(rel)
+            if pre is not None:
+                skip(pre, "ignored")
                 continue
-            real = os.path.realpath(full)
-            if real != root and not real.startswith(root + os.sep):
-                skipped.append({"path": rel, "reason": "symlink-outside-root"})
+            consider(rel, os.path.join(root, rel))
+        for rel in ignored:
+            if _ignored_prefix(rel) is not None:
                 continue
-            if os.path.getsize(full) > MAX_BYTES:
-                skipped.append({"path": rel, "reason": "too-large"})
-                continue
-            files.append((rel, full, lang))
-    return files, skipped
+            if language_for(rel) is not None or os.path.splitext(rel)[1].lower() in UNSUPPORTED_CODE_EXTS:
+                skip(rel, "ignored")
+    else:
+        for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+            keep = []
+            for d in sorted(dirnames):
+                dfull = os.path.join(dirpath, d)
+                drel = os.path.relpath(dfull, root).replace(os.sep, "/")
+                if d in IGNORE_DIRS:
+                    skip(drel, "ignored")
+                elif os.path.islink(dfull) and not _inside(root, dfull):
+                    skip(drel, "symlink-escape")
+                else:
+                    keep.append(d)
+            dirnames[:] = keep
+            for f in sorted(filenames):
+                full = os.path.join(dirpath, f)
+                consider(os.path.relpath(full, root).replace(os.sep, "/"), full)
+    files.sort()
+    return files, skipped, unsupported
 
 
 def load_queries(lang):
@@ -142,11 +222,18 @@ def build_symbols(raw, relpath, source):
                     and (t["node"].start_byte, t["node"].end_byte) != (s["node"].start_byte, s["node"].end_byte):
                 if best is None or t["node"].start_byte >= best["node"].start_byte:
                     best = t
+        if s.get("parent_override") is not None:  # hook-supplied parent (e.g. Go receiver methods)
+            best = s["parent_override"]
         s["_parent"] = best
-    # qualified paths need parents resolved first (raw sorted by start so parents precede children)
+
+    def qual_of(s):
+        if "_qual" not in s:
+            p = s["_parent"]
+            s["_qual"] = (qual_of(p) + "." if p else "") + s["name"]
+        return s["_qual"]
+
     for s in raw:
-        p = s["_parent"]
-        s["_qual"] = (p["_qual"] + "." if p else "") + s["name"]
+        qual_of(s)
     # overload / collision disambiguation
     groups = {}
     for s in raw:
@@ -214,7 +301,7 @@ def main(argv=None):
     from cd_pack import open_pack, GrammarUnavailable
     pack = open_pack(os.path.abspath(cache), args.allow_download)
 
-    files, skipped = walk_files(root)
+    files, skipped, unsupported = walk_files(root, args.max_bytes)
     by_lang = {}
     for rel, full, lang in files:
         by_lang.setdefault(lang, []).append((rel, full))
@@ -243,6 +330,8 @@ def main(argv=None):
                               "hasErrors": errs, "sha256": cd_common.file_sha256(source),
                               "provenance": "tree-sitter"})
 
+    for lang in sorted(unsupported):
+        unavailable.append({"language": lang, "files": sorted(unsupported[lang]), "reason": "no-grammar"})
     symbols.sort(key=lambda s: (s["file"], s["span"]["startLine"], s["id"]))
     cov_files.sort(key=lambda f: f["path"])
     skipped.sort(key=lambda s: s["path"])
@@ -262,6 +351,13 @@ def main(argv=None):
     }
     text = json.dumps(model, indent=2, sort_keys=False) + "\n"
     if args.out:
+        out_dir = os.path.dirname(args.out)
+        if out_dir:
+            try:
+                os.makedirs(out_dir, exist_ok=True)
+            except OSError as e:
+                print(f"error: cannot create output directory {out_dir}: {e}", file=sys.stderr)
+                return 2
         with open(args.out, "w", encoding="utf-8") as fh:
             fh.write(text)
     else:

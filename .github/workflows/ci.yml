@@ -1,0 +1,30 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/cache@v4
+        with:
+          path: .cd-cache
+          key: cd-grammars-${{ hashFiles('requirements-dev.txt') }}
+      - name: Tests
+        run: uv run --with-requirements requirements-dev.txt python -m pytest -q
+      - name: Lint knowledge base
+        run: python3 scripts/lint_kb.py src/knowledge
+      - name: Build freshness check
+        run: python3 scripts/build.py --check
+      - name: Rebuild and verify committed dist is current
+        run: |
+          python3 scripts/build.py
+          git diff --exit-code dist/
+          test -z "$(git status --porcelain dist/)"
+      - name: Validate Claude Code plugin (non-blocking)
+        continue-on-error: true
+        run: claude plugin validate --strict dist/claude-code
