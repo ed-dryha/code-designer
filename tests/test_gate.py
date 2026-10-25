@@ -147,3 +147,94 @@ def test_no_finding_refs_pass_with_or_without_backlog(script, repo_root, repo):
     assert _gate_bl(script, repo_root, repo, FIX / "good-adopt.md").returncode == 0
     assert _gate_bl(script, repo_root, repo, FIX / "good-adopt.md", backlog=None).returncode == 0
     assert _gate_bl(script, repo_root, repo, FIX / "good-touched-none.md").returncode == 0
+
+
+FUTURES = FIX / "future-plans.md"
+CONFIRMED = "P-add-provider-aaaaaa"
+
+
+def _gate_fp(script, repo_root, repo, doc, futures=FUTURES, *extra):
+    args = [script, doc, "--root", repo, "--model", FIX / "model.json", "--kb", repo_root / "src" / "knowledge",
+            "--backlog", BACKLOG]
+    if futures is not None:
+        args += ["--futures", futures]
+    return run_py(*args, *extra)
+
+
+def test_plan_evidence_passes(script, repo_root, repo):
+    r = _gate_fp(script, repo_root, repo, FIX / "good-with-plan.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+@pytest.mark.parametrize("doc,status", [
+    ("bad-plan-inferred.md", "plan-not-confirmed"),
+    ("bad-plan-done.md", "plan-not-confirmed"),
+    ("bad-plan-dropped.md", "plan-not-confirmed"),
+    ("bad-plan-unknown.md", "unknown-plan"),
+    ("bad-plan-only.md", "plan-without-citation"),
+    ("bad-plans-used-unknown.md", "unknown-plan"),
+    ("bad-plans-used-inferred.md", "plan-not-confirmed"),
+])
+def test_bad_plan_docs_fail(script, repo_root, repo, doc, status):
+    r = _gate_fp(script, repo_root, repo, FIX / doc)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert status in _statuses(r)
+
+
+def test_not_confirmed_detail_names_id_and_status(script, repo_root, repo):
+    r = _gate_fp(script, repo_root, repo, FIX / "bad-plan-inferred.md")
+    d = [x for x in json.loads(r.stdout) if x["status"] == "plan-not-confirmed"][0]["detail"]
+    assert "P-inferred-bbbbbb" in d and "inferred" in d
+
+
+def test_plan_excluded_stale(script, repo_root, repo):
+    r = _gate_fp(script, repo_root, repo, FIX / "good-with-plan.md", FUTURES, "--exclude-plan", CONFIRMED)
+    assert r.returncode == 1 and "plan-excluded-stale" in _statuses(r)
+
+
+def test_bad_exclude_id_is_usage_error(script, repo_root, repo):
+    r = _gate_fp(script, repo_root, repo, FIX / "good-with-plan.md", FUTURES, "--exclude-plan", "nope")
+    assert r.returncode == 2
+
+
+@pytest.fixture(params=["missing", "dir", "big", "garbled"])
+def broken_futures(request, tmp_path):
+    p = tmp_path / "fp.md"
+    if request.param == "missing":
+        return tmp_path / "nope.md"
+    if request.param == "dir":
+        p.mkdir()
+    elif request.param == "big":
+        p.write_text("# " + "x" * (1024 * 1024 + 1))
+    else:
+        p.write_text("---\nid: [unclosed\n")
+    return p
+
+
+def test_broken_futures_fail_closed(script, repo_root, repo, broken_futures):
+    r = _gate_fp(script, repo_root, repo, FIX / "good-with-plan.md", broken_futures)
+    assert r.returncode == 1 and "unknown-plan" in _statuses(r)
+
+
+def test_broken_futures_ignored_without_plan_refs(script, repo_root, repo, broken_futures):
+    assert _gate_fp(script, repo_root, repo, FIX / "good-adopt.md", broken_futures).returncode == 0
+
+
+def test_default_futures_discovery(script, repo_root, repo):
+    (repo / "docs" / "design").mkdir(parents=True)
+    shutil.copy(FUTURES, repo / "docs" / "design" / "future-plans.md")
+    r = run_py(script, FIX / "good-with-plan.md", "--root", repo, "--model", FIX / "model.json",
+               "--kb", repo_root / "src" / "knowledge", "--backlog", BACKLOG)
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_plans_used_section_optional(script, repo_root, repo):
+    assert _gate_fp(script, repo_root, repo, FIX / "good-plans-used.md").returncode == 0
+    assert _gate_fp(script, repo_root, repo, FIX / "good-plans-none.md").returncode == 0
+    assert _gate_fp(script, repo_root, repo, FIX / "good-adopt.md").returncode == 0
+
+
+def test_plans_used_excluded_stale(script, repo_root, repo):
+    r = _gate_fp(script, repo_root, repo, FIX / "good-plans-used.md", FUTURES, "--exclude-plan", CONFIRMED)
+    assert "plan-excluded-stale" in _statuses(r)
+    assert any(x["check"] == "used-plan" and x["status"] == "plan-excluded-stale" for x in json.loads(r.stdout))
