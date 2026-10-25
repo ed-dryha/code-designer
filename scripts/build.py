@@ -2,6 +2,7 @@
 """Build dist/<host>/ plugin trees from src/ and hosts/<host>/.
 
 Usage: build.py [--check] [--src DIR] [--hosts DIR] [--out DIR]
+                [--market-out DIR] [--config FILE]
 
 Host differences are expressed only through {{TOKEN}} substitution in *.md
 files (D-05). Unknown tokens, unexpanded braces and {{# conditionals fail the
@@ -118,6 +119,89 @@ def build_all(src, hosts, out):
     return sorted(results)
 
 
+MARKET_DIRS = (".claude-plugin", ".agents/plugins")
+
+
+def _host_manifest(hosts, host, rel):
+    path = os.path.join(hosts, host, *rel.split("/"))
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, ValueError) as exc:
+        raise BuildError(f"cannot read {host} manifest {rel}: {exc}")
+
+
+def _dump(obj):
+    return (json.dumps(obj, indent=2, ensure_ascii=False) + "\n").encode("utf-8")
+
+
+def marketplaces(hosts, config_path):
+    """Return {relpath: bytes} for the two root marketplace manifests."""
+    try:
+        with open(config_path, encoding="utf-8") as fh:
+            cfg = json.load(fh)
+    except (OSError, ValueError) as exc:
+        raise BuildError(f"cannot read config {config_path}: {exc}")
+    for key in ("ownerName", "githubRepo"):
+        if not isinstance(cfg.get(key), str) or not cfg[key]:
+            raise BuildError(f"{config_path}: missing key {key}")
+    cc = _host_manifest(hosts, "claude-code", ".claude-plugin/plugin.json")
+    cx = _host_manifest(hosts, "codex", ".codex-plugin/plugin.json")
+    claude = {
+        "name": "code-designer",
+        "description": cc["description"],
+        "owner": {"name": cfg["ownerName"]},
+        "plugins": [{
+            "name": cc["name"],
+            "source": "./dist/claude-code",
+            "description": cc["description"],
+            "category": "development",
+        }],
+    }
+    codex = {
+        "name": "code-designer",
+        "interface": {"displayName": "Code Designer"},
+        "plugins": [{
+            "name": cx["name"],
+            "source": {"source": "local", "path": "./dist/codex"},
+            "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+            "category": "Developer Tools",
+        }],
+    }
+    return {
+        ".claude-plugin/marketplace.json": _dump(claude),
+        ".agents/plugins/marketplace.json": _dump(codex),
+    }
+
+
+def write_marketplaces(files, market_out):
+    for rel in sorted(files):
+        path = os.path.join(market_out, *rel.split("/"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as fh:
+            fh.write(files[rel])
+
+
+def check_marketplaces(files, market_out):
+    diffs = []
+    for rel in sorted(files):
+        path = os.path.join(market_out, *rel.split("/"))
+        if not os.path.isfile(path):
+            diffs.append(f"missing: {rel}")
+        else:
+            with open(path, "rb") as fh:
+                if fh.read() != files[rel]:
+                    diffs.append(f"differs: {rel}")
+    for d in MARKET_DIRS:
+        base = os.path.join(market_out, *d.split("/"))
+        if os.path.isdir(base):
+            for rel, _ in iter_files(base):
+                full = f"{d}/{rel}"
+                if full not in files:
+                    diffs.append(f"extra: {full}")
+    return diffs
+
+
 def snapshot(base):
     if not os.path.isdir(base):
         return {}
@@ -151,10 +235,19 @@ def main(argv=None):
     ap.add_argument("--src", default=os.path.join(ROOT, "src"))
     ap.add_argument("--hosts", default=os.path.join(ROOT, "hosts"))
     ap.add_argument("--out", default=os.path.join(ROOT, "dist"))
+    ap.add_argument("--market-out", default=None,
+                    help="root dir for marketplace manifests (default: repo root, "
+                         "only when --out is the default dist)")
+    ap.add_argument("--config", default=os.path.join(ROOT, "marketplace.config.json"))
     args = ap.parse_args(argv)
+    market_out = args.market_out
+    if market_out is None and os.path.abspath(args.out) == os.path.join(ROOT, "dist"):
+        market_out = ROOT
     try:
         if args.check:
             diffs = check(args.src, args.hosts, args.out)
+            if market_out is not None:
+                diffs += check_marketplaces(marketplaces(args.hosts, args.config), market_out)
             for d in diffs:
                 print(d)
             if diffs:
@@ -163,6 +256,8 @@ def main(argv=None):
             print("dist is up to date")
             return 0
         names = build_all(args.src, args.hosts, args.out)
+        if market_out is not None:
+            write_marketplaces(marketplaces(args.hosts, args.config), market_out)
         print("built: " + ", ".join(names))
         return 0
     except BuildError as exc:

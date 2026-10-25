@@ -1,0 +1,20 @@
+{
+  "name": "code-designer",
+  "interface": {
+    "displayName": "Code Designer"
+  },
+  "plugins": [
+    {
+      "name": "code-designer",
+      "source": {
+        "source": "local",
+        "path": "./dist/codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

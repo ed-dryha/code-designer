@@ -1,0 +1,15 @@
+{
+  "name": "code-designer",
+  "description": "Design stage for superpowers: GoF/SOLID-grounded, evidence-cited feature design.",
+  "owner": {
+    "name": "TODO-OWNER-NAME"
+  },
+  "plugins": [
+    {
+      "name": "code-designer",
+      "source": "./dist/claude-code",
+      "description": "Design stage for superpowers: GoF/SOLID-grounded, evidence-cited feature design.",
+      "category": "development"
+    }
+  ]
+}
