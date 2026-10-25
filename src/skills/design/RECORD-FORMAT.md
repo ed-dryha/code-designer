@@ -34,6 +34,10 @@ Scope: grep over <n> model-covered files (<languages>); the model has no call/im
 - pay/service.py:21 reason: common-name, caller unknown
 (or the sentence "None found")
 
+## Backlog Findings Touched
+- F-type-switch-a1b2c3
+(or the word "None")
+
 ## Handoff
 <next step: superpowers:writing-plans with this doc as Spec, or standalone note>
 ```
@@ -53,6 +57,7 @@ evidence:
     quote: |
       if provider == "stripe":
           return stripe_charge(amount)
+  - finding: F-type-switch-a1b2c3   # optional; open backlog id, needs a file citation too
 candidate: pattern-strategy   # a knowledge base id, or none
 smell: smell-type-switch      # must appear in the candidate pattern links.smells
 variation_point: <what varies, if no smell applies>
@@ -67,6 +72,8 @@ change_safety: "<which later changes stay local and which unrelated code is unto
 ```
 
 ## Rules
+
+- Backlog findings: an evidence entry `- finding: <id>` cites an open finding in `docs/design/backlog.md`. The id must exist and be open (unknown-finding, resolved-finding otherwise) and the record needs at least one verified `file` citation (finding-without-citation otherwise). The design may propose fixing the finding with an alternative `option: fix-finding`. Every touched id is listed in `## Backlog Findings Touched` (placed after Unverified / Possible, before Handoff), or the section says `None`.
 
 - Blast Radius items are `- <path>:<line> [model|grep] <text>`; a backticked quote is verified on that line. See `BLAST-RADIUS.md`. Unverified items each need `reason:`.
 - Quotes use block scalars (`quote: |`) so colons and quotes in code survive YAML. Copy the quote from the file span read immediately before writing.
