@@ -1,0 +1,16 @@
+{
+  "description": "Optional design-stage nudge (set CODE_DESIGNER_NUDGE=1)",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/nudge.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
