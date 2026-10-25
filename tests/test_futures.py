@@ -316,3 +316,111 @@ def test_no_verified_source(script, root, tmp_path):
     c = cand(root, source=[{"type": "model", "ref": "src/a.py#pay"}])
     r = propose(script, root, tmp_path, {"candidates": [c]}, "--model", sy)
     assert "no-verified-source" in json.dumps(rejected(r))
+
+
+# ------------------------------------------------------------------ stale
+
+def stale(script, root, *extra):
+    r = run_py(script, "stale", "--root", root, *extra)
+    assert r.returncode == 0, r.stdout + r.stderr
+    return json.loads(r.stdout)
+
+
+def confirm(script, root, tmp_path, affected, date="2026-01-02"):
+    data = {"developerPlans": [{"title": "Thing", "confidence": "low", "affected": affected, "answer": "ok"}]}
+    r = apply(script, root, tmp_path, data, date=date)
+    assert r.returncode == 0, r.stdout + r.stderr
+    return mk_id("Thing")
+
+
+def commit_file(root, rel, text, date="2026-03-01T10:00:00+00:00", msg="change"):
+    f = root / rel
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(text)
+    git(root, "add", rel)
+    git(root, "commit", "-q", "-m", msg, date=date)
+
+
+def test_stale_touched(script, root, tmp_path):
+    pid = confirm(script, root, tmp_path, ["src/a.py"])
+    commit_file(root, "src/a.py", "def pay(x):\n    return x\n", msg="rework pay")
+    out = stale(script, root)
+    assert [s["id"] for s in out["stale"]] == [pid]
+    s = out["stale"][0]
+    assert s["files"] == ["src/a.py"] and s["commits"][0]["subject"] == "rework pay"
+    assert s["lastConfirmed"] == "2026-01-02" and {"hash", "date", "subject"} <= set(s["commits"][0])
+
+
+def test_not_stale_unrelated(script, root, tmp_path):
+    confirm(script, root, tmp_path, ["src/a.py"])
+    commit_file(root, "src/b.py", "x = 1\n")
+    assert stale(script, root)["stale"] == []
+
+
+def test_dormant_not_stale(script, root, tmp_path):
+    confirm(script, root, tmp_path, ["src/a.py"], date="2019-01-01")
+    assert stale(script, root)["stale"] == []
+
+
+def test_self_exclusion(script, root, tmp_path):
+    confirm(script, root, tmp_path, ["docs/**", "src/a.py"])
+    commit_file(root, "docs/design/future-plans.md", "x\n")
+    commit_file(root, "docs/design/backlog.md", "y\n")
+    assert stale(script, root)["stale"] == []
+
+
+def test_stale_glob(script, root, tmp_path):
+    pid = confirm(script, root, tmp_path, ["pkg/**"])
+    commit_file(root, "pkg/x/y.py", "def y():\n    return 4\n")
+    assert [s["id"] for s in stale(script, root)["stale"]] == [pid]
+
+
+def hand_write(root, ps):
+    write_plans(root, GOOD, ps)
+
+
+def test_stale_date_fallback(script, root):
+    commit_file(root, "src/a.py", "v2\n", date="2026-02-01T10:00:00+00:00")
+    p = plan(id=mk_id("Thing"), status="confirmed", lastConfirmed="2026-01-15", affected=["src/a.py"])
+    hand_write(root, [p])
+    out = stale(script, root)
+    assert [s["id"] for s in out["stale"]] == [p["id"]]
+    p["lastConfirmedCommit"] = "0" * 40
+    hand_write(root, [p])
+    out = stale(script, root)
+    assert [s["id"] for s in out["stale"]] == [p["id"]] and out.get("warning")
+
+
+def test_stale_non_git_and_missing(script, root, tmp_path):
+    out = stale(script, root)
+    assert out["stale"] == [] and out.get("warning")
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    out = stale(script, plain)
+    assert out["stale"] == [] and out.get("warning")
+
+
+def test_stale_only_confirmed(script, root):
+    commit_file(root, "src/a.py", "v2\n", date="2026-02-01T10:00:00+00:00")
+    ps = [plan(id=mk_id(s), status=s, lastConfirmed="2026-01-15", affected=["src/a.py"])
+          for s in ("inferred", "done", "dropped")]
+    hand_write(root, ps)
+    assert stale(script, root)["stale"] == []
+
+
+def test_stale_unsafe_pathspec(script, root):
+    commit_file(root, "src/a.py", "v2\n", date="2026-02-01T10:00:00+00:00")
+    p1 = plan(id=mk_id("One"), status="confirmed", lastConfirmed="2026-01-15",
+              affected=["--output=/tmp/x"])
+    p2 = plan(id=mk_id("Two"), status="confirmed", lastConfirmed="2026-01-15", affected=["../x"])
+    hand_write(root, [p1, p2])
+    out = stale(script, root)
+    assert out["stale"] == [] and out.get("warning")
+    assert not os.path.exists("/tmp/x")
+
+
+def test_stale_malformed(script, root):
+    plans(root).parent.mkdir(parents=True)
+    shutil.copy(FIX / "plans" / "malformed.md", plans(root))
+    out = stale(script, root)
+    assert out["stale"] == [] and out.get("warning")
