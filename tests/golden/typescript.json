@@ -10,6 +10,15 @@
   "coverage": {
     "files": [
       {
+        "path": "animals.ts",
+        "language": "typescript",
+        "parsed": true,
+        "symbols": 11,
+        "hasErrors": false,
+        "sha256": "c42a867bca2637fffed67aa0efffa5ac2593b7cf16821d84771815c71ae1134b",
+        "provenance": "tree-sitter"
+      },
+      {
         "path": "shapes.ts",
         "language": "typescript",
         "parsed": true,
@@ -23,6 +32,233 @@
     "skipped": []
   },
   "symbols": [
+    {
+      "id": "animals.ts#Walker",
+      "kind": "interface",
+      "name": "Walker",
+      "parent": null,
+      "file": "animals.ts",
+      "span": {
+        "startLine": 1,
+        "endLine": 3
+      },
+      "signature": "interface Walker",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "567401c25aac"
+    },
+    {
+      "id": "animals.ts#Walker.walk",
+      "kind": "method",
+      "name": "walk",
+      "parent": "animals.ts#Walker",
+      "file": "animals.ts",
+      "span": {
+        "startLine": 2,
+        "endLine": 2
+      },
+      "signature": "walk(): void",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "c6d2c4c6999c"
+    },
+    {
+      "id": "animals.ts#Namer",
+      "kind": "interface",
+      "name": "Namer",
+      "parent": null,
+      "file": "animals.ts",
+      "span": {
+        "startLine": 5,
+        "endLine": 7
+      },
+      "signature": "interface Namer",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "16effe4263d7"
+    },
+    {
+      "id": "animals.ts#Namer.label",
+      "kind": "method",
+      "name": "label",
+      "parent": "animals.ts#Namer",
+      "file": "animals.ts",
+      "span": {
+        "startLine": 6,
+        "endLine": 6
+      },
+      "signature": "label(): string",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "7048015c2ebb"
+    },
+    {
+      "id": "animals.ts#Pet",
+      "kind": "interface",
+      "name": "Pet",
+      "parent": null,
+      "file": "animals.ts",
+      "span": {
+        "startLine": 9,
+        "endLine": 11
+      },
+      "signature": "interface Pet extends Namer",
+      "visibility": null,
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "Namer"
+        }
+      ],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "83adb0e441ef"
+    },
+    {
+      "id": "animals.ts#Pet.owner",
+      "kind": "field",
+      "name": "owner",
+      "parent": "animals.ts#Pet",
+      "file": "animals.ts",
+      "span": {
+        "startLine": 10,
+        "endLine": 10
+      },
+      "signature": "owner: string",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "string",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "5e736900a44d"
+    },
+    {
+      "id": "animals.ts#Animal",
+      "kind": "class",
+      "name": "Animal",
+      "parent": null,
+      "file": "animals.ts",
+      "span": {
+        "startLine": 13,
+        "endLine": 15
+      },
+      "signature": "class Animal",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "09c84751cf28"
+    },
+    {
+      "id": "animals.ts#Animal.legs",
+      "kind": "field",
+      "name": "legs",
+      "parent": "animals.ts#Animal",
+      "file": "animals.ts",
+      "span": {
+        "startLine": 14,
+        "endLine": 14
+      },
+      "signature": "legs: number = 4",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "number",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "0ff3d4d0545e"
+    },
+    {
+      "id": "animals.ts#Dog",
+      "kind": "class",
+      "name": "Dog",
+      "parent": null,
+      "file": "animals.ts",
+      "span": {
+        "startLine": 17,
+        "endLine": 23
+      },
+      "signature": "class Dog extends Animal implements Walker, Namer",
+      "visibility": null,
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "Animal"
+        },
+        {
+          "relation": "implements",
+          "name": "Walker"
+        },
+        {
+          "relation": "implements",
+          "name": "Namer"
+        }
+      ],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "c9bc439dd5df"
+    },
+    {
+      "id": "animals.ts#Dog.walk",
+      "kind": "method",
+      "name": "walk",
+      "parent": "animals.ts#Dog",
+      "file": "animals.ts",
+      "span": {
+        "startLine": 18,
+        "endLine": 18
+      },
+      "signature": "walk(): void",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "6320c4b0b53e"
+    },
+    {
+      "id": "animals.ts#Dog.label",
+      "kind": "method",
+      "name": "label",
+      "parent": "animals.ts#Dog",
+      "file": "animals.ts",
+      "span": {
+        "startLine": 20,
+        "endLine": 22
+      },
+      "signature": "label(): string",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "137e5c5b92e3"
+    },
     {
       "id": "shapes.ts#Shape",
       "kind": "interface",
@@ -112,7 +348,12 @@
       "signature": "abstract class Base implements Shape",
       "visibility": null,
       "static": false,
-      "supertypes": [],
+      "supertypes": [
+        {
+          "relation": "implements",
+          "name": "Shape"
+        }
+      ],
       "typeText": null,
       "provenance": "tree-sitter",
       "inferred": false,

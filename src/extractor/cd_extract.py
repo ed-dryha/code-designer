@@ -24,7 +24,7 @@ from languages import language_for  # noqa: E402
 GENERATOR_VERSION = "0.1.0"
 PACK_VERSION = "1.22.1"
 HERE = os.path.dirname(os.path.abspath(__file__))
-TYPE_SKIP = {"name", "supers"}
+TYPE_SKIP = {"name", "supers", "impls"}
 # Source extensions we recognise but have no queries/grammar wiring for (reported, never silent).
 UNSUPPORTED_CODE_EXTS = {
     ".ex": "elixir", ".exs": "elixir", ".scala": "scala", ".swift": "swift",
@@ -182,7 +182,10 @@ def collect(matches):
             seen.add((kind, node.start_byte, node.end_byte))
             sym = {"kind": kind, "name": node_text(caps[name_key][0]), "node": node}
             if "type.supers" in caps and key.startswith("type."):
-                sym["supers"] = [node_text(c) for c in caps["type.supers"][0].named_children]
+                sym["supers"] = [("extends", node_text(c)) for c in caps["type.supers"][0].named_children]
+            if "type.impls" in caps and key.startswith("type."):
+                sym.setdefault("supers", []).extend(
+                    ("implements", node_text(c)) for c in caps["type.impls"][0].named_children)
             if "field.type" in caps and key == "field":
                 sym["typeText"] = node_text(caps["field.type"][0])
             if "modifiers" in caps:
@@ -209,6 +212,12 @@ def params_of(sig, node=None):
     if sig and "(" in sig and ")" in sig:
         return "".join(sig[sig.index("(") + 1: sig.rindex(")")].split())
     return ""
+
+
+def _super_entry(item):
+    """Supers are (relation, name) pairs; a bare string (legacy hooks) means extends."""
+    rel, name = ("extends", item) if isinstance(item, str) else item
+    return {"relation": rel, "name": name}
 
 
 TYPE_KINDS = {"class", "interface", "enum", "struct", "trait", "record", "object"}
@@ -269,7 +278,7 @@ def build_symbols(raw, relpath, source):
             "signature": signature_of(node),
             "visibility": vis,
             "static": "static" in mods,
-            "supertypes": [{"relation": "extends", "name": n} for n in s.get("supers", [])],
+            "supertypes": [_super_entry(x) for x in s.get("supers", [])],
             "typeText": s.get("typeText"),
             "provenance": "tree-sitter",
             "inferred": False,

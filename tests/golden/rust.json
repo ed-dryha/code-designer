@@ -76,7 +76,7 @@
       "static": false,
       "supertypes": [
         {
-          "relation": "extends",
+          "relation": "implements",
           "name": "Shape"
         }
       ],

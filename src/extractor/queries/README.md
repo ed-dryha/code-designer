@@ -7,6 +7,7 @@ Every `queries/<lang>.scm` uses only these captures; `cd_extract.py` adapts matc
 |---|---|
 | `@type.<kind>` + `@type.name` | Type declaration; `<kind>` is one of class interface enum struct trait record object |
 | `@type.supers` (optional) | Node whose named children are supertype names (relation `extends`) |
+| `@type.impls` (optional) | Node whose named children are implemented interface names (relation `implements`) |
 | `@method` + `@method.name` | Method |
 | `@constructor` + `@constructor.name` | Constructor |
 | `@function` + `@function.name` | Top-level function |
