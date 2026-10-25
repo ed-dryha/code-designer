@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "symbols": [
+    {
+      "id": "pay/service.py#PaymentService",
+      "kind": "class",
+      "name": "PaymentService",
+      "parent": null,
+      "file": "pay/service.py",
+      "span": {
+        "startLine": 1,
+        "endLine": 18
+      },
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "14e6a6d55258"
+    },
+    {
+      "id": "pay/service.py#PaymentService.charge",
+      "kind": "method",
+      "name": "charge",
+      "parent": "pay/service.py#PaymentService",
+      "file": "pay/service.py",
+      "span": {
+        "startLine": 2,
+        "endLine": 9
+      },
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "e7828f5c7503"
+    },
+    {
+      "id": "pay/service.py#PaymentService.refund",
+      "kind": "method",
+      "name": "refund",
+      "parent": "pay/service.py#PaymentService",
+      "file": "pay/service.py",
+      "span": {
+        "startLine": 11,
+        "endLine": 18
+      },
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "e45cd93ee1aa"
+    },
+    {
+      "id": "pay/service.py#helper",
+      "kind": "function",
+      "name": "helper",
+      "parent": null,
+      "file": "pay/service.py",
+      "span": {
+        "startLine": 21,
+        "endLine": 22
+      },
+      "provenance": "agent",
+      "inferred": true,
+      "hash": "bef5ba5bb35a"
+    }
+  ]
+}
