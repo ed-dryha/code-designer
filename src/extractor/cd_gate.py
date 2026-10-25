@@ -6,7 +6,7 @@
 """Hard evidence gate over a design doc (decision records).
 
 Usage: cd_gate.py <doc.md> --root DIR --model PATH [--kb DIR] [--tolerance N]
-[--backlog PATH]
+[--backlog PATH] [--futures PATH] [--exclude-plan ID ...]
 Exit codes: 0 all pass, 1 any fail, 2 usage/IO. Prints a JSON array of
 {record, check, status[, detail]} to stdout and "N/M checks pass" to stderr.
 """
@@ -175,6 +175,55 @@ def _finding_status(fid, backlog):
     return "resolved-finding" if backlog[fid] == "resolved" else "pass"
 
 
+PLAN_ID = re.compile(r"P-[a-z0-9-]+-[0-9a-f]{6,8}")
+PLAN_ARG = re.compile(r"^P-[a-z0-9-]+-[0-9a-f]{6,8}$")
+USED_H = re.compile(r"^##\s+Future Plans Used\s*$")
+
+
+def load_plans(path):
+    """Map plan id -> status from future-plans.md. Absent -> None; unreadable/malformed -> {} (fail closed)."""
+    if not path or not os.path.exists(path):
+        return None
+    plans = {}
+    try:
+        if not os.path.isfile(path) or os.path.getsize(path) > MAX_DOC_BYTES:
+            return {}
+        with open(path, encoding="utf-8") as fh:
+            for d in yaml.safe_load_all(fh.read()):
+                if isinstance(d, dict) and isinstance(d.get("id"), str):
+                    plans[d["id"]] = d.get("status")
+    except (OSError, ValueError, yaml.YAMLError):
+        return {}
+    return plans
+
+
+def _plan_status(pid, plans, excluded):
+    """Return (status, detail); only confirmed, non-excluded plans pass."""
+    if pid in excluded:
+        return "plan-excluded-stale", pid
+    if not plans or pid not in plans:
+        return "unknown-plan", pid
+    if plans[pid] != "confirmed":
+        return "plan-not-confirmed", "%s (%s)" % (pid, plans[pid])
+    return "pass", pid
+
+
+def gate_plans_used(text, plans, excluded):
+    """Cross-check ids listed under the optional ## Future Plans Used."""
+    sec = _section(text.split("\n"), USED_H)
+    res = []
+    for n, t in sec or []:
+        if not ANY_ITEM.match(t):
+            continue
+        m = PLAN_ID.search(t)
+        if not m:
+            continue
+        st, detail = _plan_status(m.group(0), plans, excluded)
+        res.append({"record": "plans", "check": "used-plan", "status": st, "line": n,
+                    **({} if st == "pass" else {"detail": detail})})
+    return res
+
+
 def gate_touched(text, backlog):
     """Cross-check ids listed under ## Backlog Findings Touched."""
     sec = _section(text.split("\n"), TOUCHED_H)
@@ -191,7 +240,7 @@ def gate_touched(text, backlog):
     return res
 
 
-def gate_record(rid, rec, root, symbols, kb, tolerance, backlog=None):
+def gate_record(rid, rec, root, symbols, kb, tolerance, backlog=None, plans=None, excluded=frozenset()):
     res = []
 
     def add(check, status, **extra):
@@ -238,6 +287,14 @@ def gate_record(rid, rec, root, symbols, kb, tolerance, backlog=None):
     if findings:
         add("finding-citation", "pass" if ok_cite else "finding-without-citation")
 
+    plan_refs = [e["plan"] for e in ev if isinstance(e, dict) and isinstance(e.get("plan"), str)] \
+        if isinstance(ev, list) else []
+    for pid in plan_refs:
+        st, detail = _plan_status(pid, plans, excluded)
+        add("plan", st, **({} if st == "pass" else {"detail": detail}))
+    if plan_refs:
+        add("plan-citation", "pass" if ok_cite else "plan-without-citation")
+
     if verdict == "adopt" and rec["candidate"] not in (None, "none"):
         cand = rec["candidate"]
         meta = kb.get(cand)
@@ -270,6 +327,8 @@ def main(argv=None):
     ap.add_argument("--model", required=True)
     ap.add_argument("--kb")
     ap.add_argument("--backlog")
+    ap.add_argument("--futures")
+    ap.add_argument("--exclude-plan", action="append", default=[], dest="exclude_plan")
     ap.add_argument("--tolerance", type=int, default=0)
     args = ap.parse_args(sys.argv[1:] if argv is None else argv)
     root = os.path.realpath(args.root)
@@ -287,9 +346,14 @@ def main(argv=None):
     if not os.path.isdir(root) or args.tolerance < 0:
         print("error: root must be a directory, tolerance >= 0", file=sys.stderr)
         return 2
+    if any(not PLAN_ARG.match(x) for x in args.exclude_plan):
+        print("error: --exclude-plan needs a plan id (P-...-hex)", file=sys.stderr)
+        return 2
+    excluded = frozenset(args.exclude_plan)
     kb = load_kb(args.kb)
     bl_path = args.backlog or os.path.join(root, "docs", "design", "backlog.md")
     backlog = load_backlog(bl_path)
+    plans = load_plans(args.futures or os.path.join(root, "docs", "design", "future-plans.md"))
 
     results = []
     records = extract_records(text)
@@ -312,10 +376,11 @@ def main(argv=None):
             results.append({"record": hid, "check": "yaml", "status": "yaml-error", "line": start,
                             "detail": "record is not a mapping"})
             continue
-        results.extend(gate_record(rec.get("id", hid), rec, root, symbols, kb, args.tolerance, backlog))
+        results.extend(gate_record(rec.get("id", hid), rec, root, symbols, kb, args.tolerance, backlog, plans, excluded))
 
     results.extend(gate_blast(text, root, args.tolerance))
     results.extend(gate_touched(text, backlog))
+    results.extend(gate_plans_used(text, plans, excluded))
 
     print(json.dumps(results, indent=2))
     bad = sum(1 for r in results if r["status"] != "pass")
