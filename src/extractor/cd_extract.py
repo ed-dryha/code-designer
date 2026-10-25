@@ -351,6 +351,13 @@ def main(argv=None):
     }
     text = json.dumps(model, indent=2, sort_keys=False) + "\n"
     if args.out:
+        out_dir = os.path.dirname(args.out)
+        if out_dir:
+            try:
+                os.makedirs(out_dir, exist_ok=True)
+            except OSError as e:
+                print(f"error: cannot create output directory {out_dir}: {e}", file=sys.stderr)
+                return 2
         with open(args.out, "w", encoding="utf-8") as fh:
             fh.write(text)
     else:
