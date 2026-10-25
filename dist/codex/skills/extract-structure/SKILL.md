@@ -12,7 +12,7 @@ Build a validated structure model of the current repository. The model is regene
 1. Ensure grammars are available:
 
    ```
-   python3 $SKILL_DIR/scripts/cd_setup.py --cache-dir ~/.cache/code-designer --detect .
+   python3 $SKILL_DIR/../extract-structure/scripts/cd_setup.py --cache-dir ~/.cache/code-designer --detect .
    ```
 
    Use `--status` to inspect the cache without downloading.
@@ -20,7 +20,7 @@ Build a validated structure model of the current repository. The model is regene
 2. Extract the model:
 
    ```
-   uv run --script $SKILL_DIR/scripts/cd_extract.py . --cache-dir ~/.cache/code-designer --out .code-designer/structure-model.json
+   uv run --script $SKILL_DIR/../extract-structure/scripts/cd_extract.py . --cache-dir ~/.cache/code-designer --out .code-designer/structure-model.json
    ```
 
    If `uv` is absent, run the same script with the venv python that setup created.
@@ -28,7 +28,7 @@ Build a validated structure model of the current repository. The model is regene
 3. Validate the model:
 
    ```
-   python3 $SKILL_DIR/scripts/cd_validate.py .code-designer/structure-model.json
+   python3 $SKILL_DIR/../extract-structure/scripts/cd_validate.py .code-designer/structure-model.json
    ```
 
 4. If extraction exits with code 3, or the repository uses languages without a grammar, follow `FALLBACK.md` in this skill directory (agent-read path, same schema, `inferred` flags). Never hide partial coverage.

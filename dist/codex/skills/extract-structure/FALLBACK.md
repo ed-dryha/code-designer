@@ -23,13 +23,13 @@ Use this when the tree-sitter path cannot cover the repository. The result is th
 Run both, always, after emitting the model:
 
 ```
-python3 $SKILL_DIR/scripts/cd_validate.py .code-designer/structure-model.json --root .
+python3 $SKILL_DIR/../extract-structure/scripts/cd_validate.py .code-designer/structure-model.json --root .
 ```
 
 and verify the span of every symbol you emitted with `cd_verify.py` (a citation per symbol: its file, `startLine`, `endLine`, and the first line of its signature as the quote):
 
 ```
-python3 $SKILL_DIR/scripts/cd_verify.py --root . --citations <citations.json> --model .code-designer/structure-model.json
+python3 $SKILL_DIR/../extract-structure/scripts/cd_verify.py --root . --citations <citations.json> --model .code-designer/structure-model.json
 ```
 
 Fix every violation or failed citation before continuing. Agent-provenance symbols get no leniency from the verifier.

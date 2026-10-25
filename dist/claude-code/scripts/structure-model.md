@@ -20,7 +20,7 @@ Agent-facing description of `structure-model.schema.json`. The JSON Schema is au
 - `kind`: one of class, interface, enum, struct, trait, record, object, method, constructor, function, field, property.
 - `name`, `file`, `parent` (id of enclosing symbol or `null`). Ids must be unique, every `parent` must resolve, the id must start with `<file>#`, and a child span must lie inside its parent span (same file).
 - `span`: `{startLine, endLine}`, 1-based and inclusive, `endLine >= startLine`. These are the lines a citation will be checked against, so be exact.
-- `signature`: declaration head text (no body) or `null`. `visibility`: public, protected, private, package, internal or `null`. `static`: boolean. `supertypes`: `[{relation, name}]`. `typeText`: field type text or `null`.
+- `signature`: declaration head text (no body) or `null`. `visibility`: public, protected, private, package, internal or `null`. `static`: boolean. `supertypes`: `[{relation, name}]`, where `relation` is `extends` (class/interface inheritance) or `implements` (TS/TSX `implements` clauses, Rust `impl Trait for Type`). `typeText`: field type text or `null`.
 - `provenance`: `tree-sitter` or `agent`. `inferred`: must be `false` for tree-sitter and `true` for agent (the validator enforces `inferred == (provenance == "agent")`).
 - `hash`: 12-hex hash of whitespace-normalized span text for tree-sitter symbols; `null` is allowed only for agent provenance.
 - `heuristic` (optional, boolean): the symbol was guessed (for example Python `self.x` fields).

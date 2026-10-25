@@ -19,6 +19,24 @@ def post_process(symbols, root_node, source_bytes):
     types = {s["name"]: s for s in symbols if s["kind"] in ("struct", "interface")}
     for s in symbols:
         if s["kind"] == "method" and s["node"].type == "method_declaration":
-            owner = types.get(_receiver_type(s["node"]))
+            recv = _receiver_type(s["node"])
+            owner = types.get(recv)
             if owner is not None:
                 s["parent_override"] = owner
+            else:
+                s["unresolved_receiver"] = recv  # resolved across files by cd_extract
+    # multi-name fields (X, Y float64): one symbol per name
+    have = {(s["node"].start_byte, s["name"]) for s in symbols if s["kind"] == "field"}
+    extra = []
+    for s in symbols:
+        if s["kind"] != "field" or s["node"].type != "field_declaration":
+            continue
+        for n in s["node"].children_by_field_name("name"):
+            name = n.text.decode("utf-8", errors="replace")
+            if (s["node"].start_byte, name) in have:
+                continue
+            have.add((s["node"].start_byte, name))
+            c = dict(s)
+            c["name"] = name
+            extra.append(c)
+    symbols.extend(extra)

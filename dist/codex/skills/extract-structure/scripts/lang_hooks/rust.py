@@ -34,8 +34,8 @@ def post_process(symbols, root_node, source_bytes):
                 if tr is not None:
                     name = _base_name(tr)
                     sup = owner.setdefault("supers", [])
-                    if name and name not in sup:
-                        sup.append(name)
+                    if name and ("implements", name) not in sup:
+                        sup.append(("implements", name))
             params = n.child_by_field_name("parameters")
             has_self = params is not None and any(c.type == "self_parameter" for c in params.named_children)
             if not has_self:

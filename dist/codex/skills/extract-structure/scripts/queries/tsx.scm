@@ -1,10 +1,10 @@
 (class_declaration
   name: (type_identifier) @type.name
-  (class_heritage (extends_clause)? @type.supers)?) @type.class
+  (class_heritage (extends_clause)? @type.supers (implements_clause)? @type.impls)?) @type.class
 
 (abstract_class_declaration
   name: (type_identifier) @type.name
-  (class_heritage (extends_clause)? @type.supers)?) @type.class
+  (class_heritage (extends_clause)? @type.supers (implements_clause)? @type.impls)?) @type.class
 
 (interface_declaration
   name: (type_identifier) @type.name
