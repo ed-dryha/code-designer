@@ -1,5 +1,5 @@
 {
-  "description": "Optional design-stage nudge (set CODE_DESIGNER_NUDGE=1)",
+  "description": "Optional design-stage nudge, opt-in via CODE_DESIGNER_NUDGE=1 (shell export or settings.json env block)",
   "hooks": {
     "SessionStart": [
       {
