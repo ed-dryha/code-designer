@@ -64,7 +64,11 @@ def semantic_errors(model):
             else:
                 ps = symbols[ids[par]]
                 psp = ps.get("span") if isinstance(ps, dict) else None
-                if (_span_ok(sp) and _span_ok(psp) and ps.get("file") == s.get("file")
+                # Go receiver methods and Rust impl-block methods legitimately live
+                # outside the declaring struct/enum/trait span.
+                detached = (s.get("kind") in ("method", "constructor")
+                            and ps.get("kind") in ("struct", "enum", "trait"))
+                if (not detached and _span_ok(sp) and _span_ok(psp) and ps.get("file") == s.get("file")
                         and (sp["startLine"] < psp["startLine"] or sp["endLine"] > psp["endLine"])):
                     errs.append((f"$.symbols[{i}].span", "span-outside-parent",
                                  f"span {sp['startLine']}-{sp['endLine']} outside parent {par!r} "
