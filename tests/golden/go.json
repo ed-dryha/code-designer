@@ -13,9 +13,18 @@
         "path": "shapes.go",
         "language": "go",
         "parsed": true,
-        "symbols": 8,
+        "symbols": 11,
         "hasErrors": false,
-        "sha256": "e424dde156c4c8771b6761d4a2f5c6324a4bf63b181c06737258987616be2a89",
+        "sha256": "503f9dfb7334278b196fc1980e07f5d067fdab9034f622f060eda6f49e4965ea",
+        "provenance": "tree-sitter"
+      },
+      {
+        "path": "shapes_methods.go",
+        "language": "go",
+        "parsed": true,
+        "symbols": 1,
+        "hasErrors": false,
+        "sha256": "26abd0cd7030814001eeef3c7621a5b6648b3f14d3ee0c38fd89ad6735094218",
         "provenance": "tree-sitter"
       }
     ],
@@ -174,6 +183,82 @@
       "provenance": "tree-sitter",
       "inferred": false,
       "hash": "211a148e2ce3"
+    },
+    {
+      "id": "shapes.go#Point",
+      "kind": "struct",
+      "name": "Point",
+      "parent": null,
+      "file": "shapes.go",
+      "span": {
+        "startLine": 24,
+        "endLine": 26
+      },
+      "signature": "Point struct",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "920afef63b95"
+    },
+    {
+      "id": "shapes.go#Point.X",
+      "kind": "field",
+      "name": "X",
+      "parent": "shapes.go#Point",
+      "file": "shapes.go",
+      "span": {
+        "startLine": 25,
+        "endLine": 25
+      },
+      "signature": "X, Y float64",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "float64",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "d6341a0c59d8"
+    },
+    {
+      "id": "shapes.go#Point.Y",
+      "kind": "field",
+      "name": "Y",
+      "parent": "shapes.go#Point",
+      "file": "shapes.go",
+      "span": {
+        "startLine": 25,
+        "endLine": 25
+      },
+      "signature": "X, Y float64",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": "float64",
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "d6341a0c59d8"
+    },
+    {
+      "id": "shapes_methods.go#Circle.Perimeter",
+      "kind": "method",
+      "name": "Perimeter",
+      "parent": "shapes.go#Circle",
+      "file": "shapes_methods.go",
+      "span": {
+        "startLine": 3,
+        "endLine": 5
+      },
+      "signature": "func (c Circle) Perimeter() float64",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "4876762e4451"
     }
   ]
 }

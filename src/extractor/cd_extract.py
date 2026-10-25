@@ -201,7 +201,11 @@ def signature_of(node):
     return " ".join(head.split()).rstrip(":{ ").strip() or None
 
 
-def params_of(sig):
+def params_of(sig, node=None):
+    if node is not None and node.type == "method_declaration":
+        p = node.child_by_field_name("parameters")  # Go: first paren group is the receiver
+        if p is not None:
+            return "".join(p.text.decode("utf-8", errors="replace").strip()[1:-1].split())
     if sig and "(" in sig and ")" in sig:
         return "".join(sig[sig.index("(") + 1: sig.rindex(")")].split())
     return ""
@@ -246,7 +250,7 @@ def build_symbols(raw, relpath, source):
         used = {}
         for s in grp:
             sig = signature_of(s["node"])
-            cand = f"{relpath}#{qual}({params_of(sig)})" if s["kind"] in ("method", "constructor", "function") else f"{relpath}#{qual}"
+            cand = f"{relpath}#{qual}({params_of(sig, s['node'])})" if s["kind"] in ("method", "constructor", "function") else f"{relpath}#{qual}"
             n = used.get(cand, 0) + 1
             used[cand] = n
             s["_id"] = cand if n == 1 else f"{cand}~{n}"
@@ -273,8 +277,36 @@ def build_symbols(raw, relpath, source):
         }
         if s.get("heuristic"):
             sym["heuristic"] = True
+        if s.get("unresolved_receiver"):
+            sym["_recv"] = s["unresolved_receiver"]
+            sym["_params"] = params_of(sym["signature"], node)
         symbols.append(sym)
     return symbols
+
+
+def resolve_cross_file_parents(symbols):
+    """Parent Go receiver methods to a struct/interface declared in another file of the same directory."""
+    types = {}
+    for s in symbols:
+        if s["file"].endswith(".go") and s["kind"] in ("struct", "interface") and s["parent"] is None:
+            types.setdefault((os.path.dirname(s["file"]), s["name"]), s)
+    ids = {s["id"] for s in symbols}
+    for s in symbols:
+        recv = s.pop("_recv", None)
+        params = s.pop("_params", "")
+        if recv is None or s["parent"] is not None:
+            continue
+        t = types.get((os.path.dirname(s["file"]), recv))
+        if t is None:
+            continue
+        qual = t["id"].split("#", 1)[1]
+        new_id = f"{s['file']}#{qual}.{s['name']}"
+        if new_id in ids:
+            new_id = f"{new_id}({params})"
+        ids.discard(s["id"])
+        ids.add(new_id)
+        s["id"] = new_id
+        s["parent"] = t["id"]
 
 
 def extract_file(parser, language, queries, hook, source, relpath):
@@ -332,6 +364,7 @@ def main(argv=None):
 
     for lang in sorted(unsupported):
         unavailable.append({"language": lang, "files": sorted(unsupported[lang]), "reason": "no-grammar"})
+    resolve_cross_file_parents(symbols)
     symbols.sort(key=lambda s: (s["file"], s["span"]["startLine"], s["id"]))
     cov_files.sort(key=lambda f: f["path"])
     skipped.sort(key=lambda s: s["path"])
