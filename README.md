@@ -4,18 +4,18 @@ Code Designer adds a design stage to the superpowers brainstorm then plan workfl
 
 ## Install
 
-The marketplace manifests are generated into the repository root by `scripts/build.py`. The repository reference below is read from `marketplace.config.json`; until the real value is set it is the placeholder `TODO-OWNER/TODO-REPO`.
+The marketplace manifests are generated into the repository root by `scripts/build.py`. The repository reference below is read from `marketplace.config.json`.
 
 ### Claude Code
 
 From the GitHub repository:
 
 ```
-claude plugin marketplace add TODO-OWNER/TODO-REPO
+claude plugin marketplace add ed-dryha/code-designer
 claude plugin install code-designer@code-designer
 ```
 
-Inside a session the equivalents are `/plugin marketplace add TODO-OWNER/TODO-REPO` and `/plugin install code-designer@code-designer`.
+Inside a session the equivalents are `/plugin marketplace add ed-dryha/code-designer` and `/plugin install code-designer@code-designer`.
 
 From a local clone (no GitHub identity needed), run from the clone root:
 
@@ -29,11 +29,11 @@ claude plugin install code-designer@code-designer
 From the GitHub repository:
 
 ```
-codex plugin marketplace add TODO-OWNER/TODO-REPO
+codex plugin marketplace add ed-dryha/code-designer
 codex plugin add code-designer@code-designer
 ```
 
-From a local clone, run `codex plugin marketplace add ./` from the clone root, then the same `codex plugin add` line. The exact Codex command form has not been verified yet: check it with `codex plugin --help`. Codex caches installed plugins under `~/.codex/plugins/cache`.
+From a local clone, run `codex plugin marketplace add ./` from the clone root, then the same `codex plugin add` line. The command form matches `codex plugin --help` (`codex plugin add PLUGIN@MARKETPLACE`). Codex caches installed plugins under `~/.codex/plugins/cache`.
 
 ## Quickstart
 

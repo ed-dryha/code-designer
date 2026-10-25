@@ -2,7 +2,7 @@
   "name": "code-designer",
   "description": "Design stage for superpowers: GoF/SOLID-grounded, evidence-cited feature design.",
   "owner": {
-    "name": "TODO-OWNER-NAME"
+    "name": "ed-dryha"
   },
   "plugins": [
     {
