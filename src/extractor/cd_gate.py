@@ -6,7 +6,7 @@
 """Hard evidence gate over a design doc (decision records).
 
 Usage: cd_gate.py <doc.md> --root DIR --model PATH [--kb DIR] [--tolerance N]
-[--backlog PATH] [--futures PATH] [--exclude-plan ID ...]
+[--backlog PATH] [--futures PATH] [--exclude-plan ID ...] [--require-triage]
 Exit codes: 0 all pass, 1 any fail, 2 usage/IO. Prints a JSON array of
 {record, check, status[, detail]} to stdout and "N/M checks pass" to stderr.
 """
@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import yaml  # noqa: E402
 
+import cd_triage  # noqa: E402
 import cd_verify  # noqa: E402
 
 MAX_DOC_BYTES = 1024 * 1024
@@ -76,6 +77,94 @@ def _section(lines, head):
                 out.append((j + 1, lines[j]))
             return out
     return None
+
+
+TRIAGE_H = re.compile(r"^##\s+Triage\s*$")
+TRIAGE_ORDER = {"skip": 0, "light": 1, "full": 2}
+OVERRIDE_FORCED = re.compile(r'^forced-by-developer:\s*"([^"]+)"\s*$')
+MAX_LIGHT_RECORDS = 2
+
+
+def gate_triage(text, require):
+    """Check the optional ## Triage section. Returns (results, verdict or None)."""
+    res = []
+
+    def add(check, status, **extra):
+        res.append({"record": "triage", "check": check, "status": status, **extra})
+
+    sec = _section(text.split("\n"), TRIAGE_H)
+    if sec is None:
+        if require:
+            add("triage-section", "triage-missing", detail="## Triage")
+        return res, None
+    body = [t for _n, t in sec]
+    verdict = None
+    override = None
+    for t in body:
+        if t.startswith("Verdict:") and verdict is None:
+            verdict = t[len("Verdict:"):].strip()
+        elif t.startswith("Override:") and override is None:
+            override = t[len("Override:"):].strip()
+    if verdict not in TRIAGE_ORDER:
+        add("verdict", "triage-bad-verdict", detail=verdict)
+        verdict = None
+    else:
+        add("verdict", "pass")
+    forced = False
+    if override == "none":
+        add("override", "pass")
+    elif override is not None and OVERRIDE_FORCED.match(override):
+        forced = True
+        add("override", "pass")
+    else:
+        add("override", "triage-bad-override", detail=override)
+    reasons = []
+    in_reasons = False
+    for t in body:
+        if t.startswith("Reasons:"):
+            in_reasons = True
+        elif in_reasons and ANY_ITEM.match(t):
+            if t.lstrip("-* ").strip():
+                reasons.append(t)
+        elif in_reasons and t.strip():
+            in_reasons = False
+    if verdict == "skip":
+        add("reasons", "pass" if reasons else "triage-no-reasons")
+    signals = None
+    in_json = False
+    buf = []
+    for t in body:
+        if not in_json and re.match(r"^```\s*json\s*$", t):
+            in_json = True
+        elif in_json and t.startswith("```"):
+            break
+        elif in_json:
+            buf.append(t)
+    try:
+        signals = json.loads("\n".join(buf))
+        if not isinstance(signals, dict) or not isinstance(signals.get("signalsSha"), str):
+            signals = None
+    except ValueError:
+        signals = None
+    if signals is None:
+        add("signals", "triage-bad-signals")
+    elif signals["signalsSha"] != cd_triage.signals_sha(signals):
+        add("signals", "triage-signals-tampered")
+        signals = None
+    else:
+        add("signals", "pass")
+    if signals is not None and verdict in ("skip", "light") and not forced:
+        rec = cd_triage.recommend(signals)
+        if TRIAGE_ORDER[rec] > TRIAGE_ORDER[verdict]:
+            add("anti-downgrade", "skip-contradicts-signals" if verdict == "skip"
+                else "verdict-contradicts-signals", detail="script recommends " + rec)
+        else:
+            add("anti-downgrade", "pass")
+    if verdict == "light":
+        n = sum(1 for ln in text.split("\n") if HEADING.match(ln))
+        add("light-records", "pass" if n <= MAX_LIGHT_RECORDS else "light-too-many-records",
+            **({} if n <= MAX_LIGHT_RECORDS else {"detail": "%d records (max %d)" % (n, MAX_LIGHT_RECORDS)}))
+    return res, verdict
 
 
 def gate_blast(text, root, tolerance):
@@ -329,6 +418,7 @@ def main(argv=None):
     ap.add_argument("--backlog")
     ap.add_argument("--futures")
     ap.add_argument("--exclude-plan", action="append", default=[], dest="exclude_plan")
+    ap.add_argument("--require-triage", action="store_true", dest="require_triage")
     ap.add_argument("--tolerance", type=int, default=0)
     args = ap.parse_args(sys.argv[1:] if argv is None else argv)
     root = os.path.realpath(args.root)
@@ -355,7 +445,11 @@ def main(argv=None):
     backlog = load_backlog(bl_path)
     plans = load_plans(args.futures or os.path.join(root, "docs", "design", "future-plans.md"))
 
-    results = []
+    results, tverdict = gate_triage(text, args.require_triage)
+    if tverdict == "skip" and all(r["status"] == "pass" for r in results):
+        print(json.dumps(results, indent=2))
+        print(f"{len(results)}/{len(results)} checks pass", file=sys.stderr)
+        return 0
     records = extract_records(text)
     if not records:
         results.append({"record": None, "check": "records", "status": "no-records"})
