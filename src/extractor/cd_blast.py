@@ -5,9 +5,11 @@
 # ///
 """Blast radius: what depends on the changed symbols (model edges plus grep).
 
-Usage: cd_blast.py --model PATH --root DIR (--symbol ID ... | --file PATH ...)
+Usage: cd_blast.py --model PATH --root DIR (--symbol ID ... | --file PATH ... | --name NAME ...)
                    [--max-files N] [--max-hits N]
-Prints JSON {model, grep, unverified, scope} to stdout. Exit 0 on success, 2 usage/IO.
+Prints JSON {model, grep, unverified, scope, checklist} to stdout. Exit 0 on success, 2 usage/IO.
+`checklist` greps files of languages without a grammar (model coverage.unavailable) for
+language-agnostic risk idioms; `--name` greps a bare name with no model symbol needed.
 
 The structure model has no call or import edges, so model dependents are limited to
 parent, children, overloads and subtypes/implementers; grep over the files the model
@@ -26,6 +28,25 @@ import cd_common  # noqa: E402,F401  (shared walk rules and limits)
 TYPE_KINDS = ("class", "interface", "struct", "trait", "enum", "type", "record", "protocol")
 DYNAMIC = ("getattr(", "reflect.", "__import__", "setattr(", "importlib", "Class.forName")
 NO_EDGES = "no call/import edges in model"
+MAX_LINE = 400
+CAT_CAP, TOTAL_CAP = 15, 60
+# Simple alternations only (no nested quantifiers) so scanning stays linear.
+CHECKLIST = [
+    ("resource-lookup", re.compile(
+        r"Bundle\.(main|module|allBundles)|forResource:|NSBundle|getResource(AsStream)?\(|"
+        r"AssetManager|assets\.open|Resources\.Load|include_(str|bytes)!|importlib\.resources|"
+        r"__dirname|__FILE__")),
+    ("hard-coded-resource-name", re.compile(
+        r"[\"'][\w./-]+\.(json|xml|plist|sqlite3?|db|csv|ya?ml|png|jpg|xcstrings|strings|ttf|bin|pack)[\"']")),
+    ("string-key", re.compile(
+        r"(forKey|forName|getenv|environ|process\.env|UserDefaults|SharedPreferences|localStorage|"
+        r"sessionStorage)\b[^\"']*[\"'][^\"']+[\"']|\[\s*[\"'][A-Za-z_][\w.-]*[\"']\s*\]")),
+    ("default-fallback", re.compile(
+        r"\?\?\s|\?:\s|\|\|\s*[\"'\w]|getOrDefault|orElse\(|unwrap_or|value_or|"
+        r"\b(fallback|defaultValue|DEFAULT_[A-Z_]+)\b")),
+    ("single-instance-accessor", re.compile(
+        r"\.(shared|default|current|bundled|main|instance|standard|singleton)\b(\(\))?")),
+]
 
 
 def _read_lines(root, rel, cache):
@@ -53,7 +74,34 @@ def _quote(root, rel, line, cache):
     return lines[line - 1].strip()
 
 
-def blast(model, root, targets, max_files, max_hits):
+def checklist(root, files, cache, add_unv):
+    """Grep no-grammar files for risk idioms; capped per category and in total."""
+    out, per = [], {}
+    dropped = 0
+    for rel in files:
+        lines = _read_lines(root, rel, cache)
+        if lines is None:
+            continue
+        for n, text in enumerate(lines, 1):
+            if len(text) > MAX_LINE:
+                continue
+            for cat, rx in CHECKLIST:
+                if not rx.search(text):
+                    continue
+                if per.get(cat, 0) >= CAT_CAP or len(out) >= TOTAL_CAP:
+                    dropped += 1
+                    continue
+                per[cat] = per.get(cat, 0) + 1
+                out.append({"file": rel, "line": n, "category": cat, "via": "checklist:" + cat,
+                            "tag": "grep", "quote": text.strip()})
+    if dropped:
+        add_unv("truncated", detail="%d more checklist hits not listed (cap %d per category, %d total)"
+                % (dropped, CAT_CAP, TOTAL_CAP))
+    out.sort(key=lambda d: (d["category"], d["file"], d["line"]))
+    return out
+
+
+def blast(model, root, targets, max_files, max_hits, names=()):
     symbols = model.get("symbols", [])
     by_id = {s["id"]: s for s in symbols}
     cov = model.get("coverage") or {}
@@ -63,6 +111,10 @@ def blast(model, root, targets, max_files, max_hits):
                   for f in sorted({s["file"] for s in symbols})]
     cache = {}
     model_deps, grep_deps, unverified = {}, {}, []
+    unav_files = []
+    for u in cov.get("unavailable") or []:
+        if isinstance(u.get("files"), list):
+            unav_files += [x for x in u["files"] if isinstance(x, str)]
 
     def add_model(sym, via):
         line = sym["span"]["startLine"]
@@ -77,6 +129,41 @@ def blast(model, root, targets, max_files, max_hits):
         e = {"reason": reason, **kw}
         if e not in unverified:
             unverified.append(e)
+
+    def grep_name(name, sid, sym):
+        """Word-boundary grep of name over covered and unavailable files."""
+        if len(name) < 4:
+            add_unv("common-name", symbol=sid, detail="name shorter than 4 characters; grep skipped")
+            return
+        rx = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(name) + r"(?![A-Za-z0-9_])")
+        hits, files = [], set()
+        paths = [f.get("path") for f in cfiles] + unav_files
+        for rel in dict.fromkeys(paths):
+            if not isinstance(rel, str):
+                continue
+            lines = _read_lines(root, rel, cache)
+            if lines is None:
+                continue
+            for n, text in enumerate(lines, 1):
+                if not rx.search(text):
+                    continue
+                if (sym and rel == sym["file"]
+                        and sym["span"]["startLine"] <= n <= sym["span"]["endLine"]):
+                    continue
+                hits.append((rel, n, text.strip()))
+                files.add(rel)
+        if len(files) > max_files:
+            add_unv("common-name", symbol=sid, detail="%d files match; grep results suppressed" % len(files))
+            return
+        for k, (rel, n, q) in enumerate(hits):
+            if k >= max_hits:
+                add_unv("truncated", symbol=sid, detail="%d more hits not listed" % (len(hits) - max_hits))
+                break
+            if any(d in q for d in DYNAMIC):
+                add_unv("dynamic-dispatch", file=rel, line=n, symbol=sid, quote=q)
+                continue
+            grep_deps.setdefault((rel, n), {"file": rel, "line": n, "via": "grep:" + name,
+                                            "tag": "grep", "quote": q})
 
     changed = [by_id[t] for t in targets if t in by_id]
     for sym in changed:
@@ -101,38 +188,10 @@ def blast(model, root, targets, max_files, max_hits):
                                 symbol=c["id"], detail="supertype name %s matches %d types" % (name, len(same)))
                     else:
                         add_model(c, st.get("relation", "extends"))
-        # grep
-        if len(name) < 4:
-            add_unv("common-name", symbol=sid, detail="name shorter than 4 characters; grep skipped")
-            continue
-        rx = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(name) + r"(?![A-Za-z0-9_])")
-        hits, files = [], set()
-        for f in cfiles:
-            rel = f.get("path")
-            if not isinstance(rel, str):
-                continue
-            lines = _read_lines(root, rel, cache)
-            if lines is None:
-                continue
-            for n, text in enumerate(lines, 1):
-                if not rx.search(text):
-                    continue
-                if rel == sym["file"] and sym["span"]["startLine"] <= n <= sym["span"]["endLine"]:
-                    continue
-                hits.append((rel, n, text.strip()))
-                files.add(rel)
-        if len(files) > max_files:
-            add_unv("common-name", symbol=sid, detail="%d files match; grep results suppressed" % len(files))
-            continue
-        for k, (rel, n, q) in enumerate(hits):
-            if k >= max_hits:
-                add_unv("truncated", symbol=sid, detail="%d more hits not listed" % (len(hits) - max_hits))
-                break
-            if any(d in q for d in DYNAMIC):
-                add_unv("dynamic-dispatch", file=rel, line=n, symbol=sid, quote=q)
-                continue
-            grep_deps.setdefault((rel, n), {"file": rel, "line": n, "via": "grep:" + name,
-                                            "tag": "grep", "quote": q})
+        grep_name(name, sid, sym)
+
+    for nm in names:
+        grep_name(nm, nm, None)
 
     # go methods whose receiver type was not resolved
     deps_syms = [by_id[k[2]] for k in model_deps if k[2] in by_id]
@@ -142,7 +201,8 @@ def blast(model, root, targets, max_files, max_hits):
 
     for u in cov.get("unavailable") or []:
         add_unv("unavailable-language", language=u.get("language"),
-                detail="%s files not parsed; dependents there are unknown" % u.get("files", "?"))
+                detail="%s files not parsed; dependents there are unknown"
+                % (len(u["files"]) if isinstance(u.get("files"), list) else u.get("files", "?")))
     for f in cfiles:
         if f.get("hasErrors"):
             add_unv("parse-errors", file=f.get("path"), detail="tree-sitter reported errors; symbols may be missing")
@@ -154,7 +214,9 @@ def blast(model, root, targets, max_files, max_hits):
     unverified.sort(key=lambda u: (u["reason"], u.get("file") or "", u.get("line") or 0, u.get("symbol") or ""))
     scope = {"files": len(cfiles), "languages": langs, "note": NO_EDGES,
              "description": "grep over %d model-covered files (%s); %s" % (len(cfiles), ", ".join(langs), NO_EDGES)}
-    return {"model": mdeps, "grep": gdeps, "unverified": unverified, "scope": scope}
+    cl = checklist(root, list(dict.fromkeys(unav_files)), cache, add_unv) if unav_files else []
+    unverified.sort(key=lambda u: (u["reason"], u.get("file") or "", u.get("line") or 0, u.get("symbol") or ""))
+    return {"model": mdeps, "grep": gdeps, "unverified": unverified, "scope": scope, "checklist": cl}
 
 
 def main(argv=None):
@@ -163,6 +225,7 @@ def main(argv=None):
     ap.add_argument("--root", required=True)
     ap.add_argument("--symbol", action="append", default=[])
     ap.add_argument("--file", action="append", default=[])
+    ap.add_argument("--name", action="append", default=[])
     ap.add_argument("--max-files", type=int, default=8)
     ap.add_argument("--max-hits", type=int, default=50)
     try:
@@ -177,9 +240,9 @@ def main(argv=None):
     except (OSError, ValueError, KeyError, TypeError) as ex:
         print(f"error: {ex}", file=sys.stderr)
         return 2
-    if (not os.path.isdir(root) or not (args.symbol or args.file)
+    if (not os.path.isdir(root) or not (args.symbol or args.file or args.name)
             or args.max_files < 1 or args.max_hits < 1):
-        print("error: need a root directory and --symbol or --file", file=sys.stderr)
+        print("error: need a root directory and --symbol, --file or --name", file=sys.stderr)
         return 2
     ids = {s["id"] for s in model["symbols"]}
     targets = list(args.symbol)
@@ -189,7 +252,7 @@ def main(argv=None):
     if unknown:
         print("error: unknown symbol: %s" % ", ".join(unknown), file=sys.stderr)
         return 2
-    print(json.dumps(blast(model, root, targets, args.max_files, args.max_hits), indent=2))
+    print(json.dumps(blast(model, root, targets, args.max_files, args.max_hits, args.name), indent=2))
     return 0
 
 

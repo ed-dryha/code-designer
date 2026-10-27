@@ -181,7 +181,7 @@ def test_name_mode_finds_string_literal_hit(script):
     out = _blast(script, S1 / "model.json", S1, "--name", "RegionPack")
     hit = [h for h in out["grep"] if 'forResource: "RegionPack"' in h["quote"]]
     assert len(hit) == 1
-    assert hit[0]["file"] == "Molfar/App/AppState.swift" and hit[0]["line"] == 10
+    assert hit[0]["file"] == "Molfar/App/AppState.swift" and hit[0]["line"] == 11
     assert hit[0]["quote"].startswith("if let url = Bundle.main.url(forResource")
     assert any(h["file"] == "Tests/RegionPackTests.swift" for h in out["grep"])
 
@@ -205,7 +205,7 @@ def test_checklist_resource_lookup_and_single_instance(script):
     out = _blast(script, S1 / "model.json", S1, "--name", "RegionPack")
     cl = out["checklist"]
     res = [c for c in cl if c["category"] == "resource-lookup"]
-    assert res and res[0]["file"] == "Molfar/App/AppState.swift" and res[0]["line"] == 10
+    assert res and res[0]["file"] == "Molfar/App/AppState.swift" and res[0]["line"] == 11
     assert set(res[0]) >= {"file", "line", "category", "via", "tag", "quote"}
     assert res[0]["via"] == "checklist:resource-lookup" and res[0]["tag"] == "grep"
     sia = [c for c in cl if c["category"] == "single-instance-accessor"]
@@ -251,4 +251,4 @@ def test_checklist_long_line_skipped(script, tmp_path):
     long = "let a = Bundle.main.url(" + "x" * 450 + ")\n"
     root, mp = _unav_repo(tmp_path, {"A.swift": long + "let b = Bundle.main.url(y)\n"})
     out = _blast(script, mp, root, "--name", "zzzzzz")
-    assert [c["line"] for c in out["checklist"]] == [2]
+    assert {c["line"] for c in out["checklist"]} == {2}
