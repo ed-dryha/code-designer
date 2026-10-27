@@ -26,9 +26,12 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import cd_backlog  # noqa: E402
+import cd_audit  # noqa: E402
 import cd_blast  # noqa: E402
 import cd_common  # noqa: E402
+import cd_edits  # noqa: E402
 import cd_futures  # noqa: E402
+import cd_reach  # noqa: E402
 
 # Starting thresholds; calibrated on the F1/F2 base commits, see
 # .planning/phases/05-plugin-refinements-from-validation-findings/05-CALIBRATION.md.
@@ -318,6 +321,259 @@ def collect(model, root, modify, additive, new_paths, backlog_docs, plan_docs):
     inputs = {"modify": list(modify), "additive": list(additive), "newPaths": list(new_paths),
               "reclassified": reclassified}
     return inputs, signals
+
+
+# ------------------------------------------------------------ schema 2
+
+# Starting values, calibrated in 06-CALIBRATION.md.
+BLAST_CALLERS = 4         # change-contract: member with at least this many non-test caller files
+ADD_CASE_SITES = 3        # add-case: at least this many unflagged switch sites
+
+_CITED_RE = re.compile(r"^(spec|backlog|plan):(\S+)$")
+
+
+def _norm(text, cap=200):
+    return " ".join(str(text).split())[:cap]
+
+
+def _read_lines_of(root, rel, cache):
+    return cd_blast._read_lines(root, rel, cache) or []
+
+
+def _resolve_edit(model, root, e):
+    """Resolve an edit target; add-case prefers the enum type named by the last segment."""
+    t = e["target"]
+    if e["shape"] == "add-case" and "." in t and "#" not in t:
+        try:
+            r = cd_reach.resolve_target(model, root, t.split(".")[-1])
+            if r.get("owner") and r.get("member") is None:
+                return r
+        except cd_edits.EditError:
+            pass
+    return cd_reach.resolve_target(model, root, t)
+
+
+def _check_new_absent(e, res, root, cache):
+    new = e.get("new")
+    if not new or e["shape"] not in ("add-member", "add-case", "add-param"):
+        return
+    if e["shape"] == "add-param":
+        rx = re.compile(r"(?<![A-Za-z0-9_])%s\s*:" % re.escape(new))
+        for rel, n in res.get("decl_lines") or []:
+            ls = _read_lines_of(root, rel, cache)
+            if 1 <= n <= len(ls) and rx.search(ls[n - 1]):
+                raise UsageError("=%s already exists as a parameter of %s" % (new, e["target"]))
+        return
+    for rel, a, b in res.get("blocks") or []:
+        ls = _read_lines_of(root, rel, cache)
+        for n in range(a, min(b, len(ls)) + 1):
+            if cd_reach._is_member_decl(ls[n - 1], new):
+                raise UsageError("=%s already exists in %s (%s:%d)" % (new, res.get("owner") or e["target"], rel, n))
+
+
+def _verify_cited(cited, n_spec, backlog_docs, plan_docs):
+    out = []
+    for raw in cited:
+        m = _CITED_RE.match(raw if isinstance(raw, str) else "")
+        if not m:
+            raise UsageError("bad --trigger %r, expected spec:N, backlog:ID or plan:ID" % (raw,))
+        kind, ref = m.groups()
+        if kind == "spec":
+            if not ref.isdigit() or not 1 <= int(ref) <= n_spec:
+                raise UsageError("--trigger spec:%s is outside the spec (%d lines)" % (ref[:20], n_spec))
+            out.append({"class": "pattern", "kind": "cited-spec", "ref": "spec:%d" % int(ref)})
+        elif kind == "backlog":
+            ok = any(isinstance(d, dict) and d.get("id") == ref and d.get("status") == "open"
+                     for d in (backlog_docs or [])[1:])
+            if not ok:
+                raise UsageError("--trigger backlog:%s is not an open finding in the backlog" % ref[:60])
+            out.append({"class": "pattern", "kind": "cited-backlog", "ref": ref})
+        else:
+            ok = any(isinstance(d, dict) and d.get("id") == ref and d.get("status") == "confirmed"
+                     for d in (plan_docs or [])[1:])
+            if not ok:
+                raise UsageError("--trigger plan:%s is not a confirmed plan" % ref[:60])
+            out.append({"class": "pattern", "kind": "cited-plan", "ref": ref})
+    return out
+
+
+def collect2(model, root, edits, new_paths, backlog_docs, plan_docs, spec_lines, dismissals,
+             cited_triggers, base, rerun, spec_sha, forced=None):
+    """Compute (inputs, signals) for schema 2 from per-edit declarations. Reads stay under root."""
+    root = os.path.realpath(root)
+    texts = sorted(set(edits or []))
+    parsed = [cd_edits.parse_edit(t) for t in texts]
+    cd_edits.validate_edits(parsed, len(spec_lines), spec_lines)
+    fresh = sorted(set(new_paths or []))
+    for p in fresh:
+        if os.path.exists(os.path.join(root, p)):
+            raise UsageError("--new-path %s exists; declare edits to its members with --edit" % p)
+
+    symbols = [s for s in model.get("symbols") or [] if isinstance(s, dict)]
+    cov = model.get("coverage") or {}
+    cov_files = [f for f in cov.get("files") or [] if isinstance(f, dict) and isinstance(f.get("path"), str)]
+    unav_files = {x for u in cov.get("unavailable") or [] if isinstance(u, dict)
+                  for x in (u.get("files") or []) if isinstance(x, str)}
+    parsed_langs = {f.get("language") for f in cov_files if f.get("parsed") and f.get("language")}
+    lang_by_path = {f["path"]: f.get("language") for f in cov_files}
+    cache = {}
+
+    callers, case_sites, readers, hits, unverified = [], [], [], [], []
+    triggers, avail = set(), set()
+    touched = set(fresh)
+    owner_type_ids = set()
+    for text, e in zip(texts, parsed):
+        res = _resolve_edit(model, root, e)
+        _check_new_absent(e, res, root, cache)
+        touched |= set(res.get("files") or [])
+        shape, owner = e["shape"], res.get("owner")
+        if shape in cd_edits.ADDITIONS and owner:
+            owner_type_ids |= {s["id"] for s in symbols
+                               if s.get("name") == owner and s.get("kind") in cd_blast.TYPE_KINDS}
+        if shape == "add-member" and e.get("state"):
+            avail.add((owner or e["target"], e["new"]))
+        elif shape == "add-param":
+            avail.add((owner or e["target"], e["new"]))
+        if shape == "add-case":
+            cs = cd_reach.case_sites(root, res, None, model)
+            case_sites.append({"target": e["target"], "count": len(cs["sites"]), "sites": cs["sites"]})
+            unverified += [dict(u, target=e["target"]) for u in cs["unverified"]]
+            if len(cs["sites"]) >= ADD_CASE_SITES:
+                triggers.add(("blast", "case-sites", e["target"]))
+        elif shape == "change-contract":
+            mc = cd_reach.member_callers(model, root, res)
+            callers.append({"target": e["target"], "total": mc["total"], "nonTest": mc["nonTest"],
+                            "files": mc["files"]})
+            if mc["nonTest"] >= BLAST_CALLERS:
+                triggers.add(("blast", "callers", e["target"]))
+        elif shape == "change-assumption":
+            ar = cd_reach.assumption_reach(model, root, res.get("member") or res.get("owner"))
+            readers.append({"target": e["target"], "count": len(ar["readers"]), "files": ar["files"],
+                            "truncated": bool(ar.get("truncated"))})
+            hits += [dict(h, target=e["target"]) for h in ar["checklist"]]
+            triggers.add(("pattern", "assumption", e["ref"]))
+        elif shape == "add-variant":
+            triggers.add(("pattern", "variant", e["ref"]))
+        if shape in ("add-member", "add-case", "add-param", "change-contract") and owner:
+            types = [s for s in symbols if s.get("name") == owner and s.get("kind") in cd_blast.TYPE_KINDS]
+            if len(types) == 1:
+                subs = [c for c in symbols
+                        if any(isinstance(st, dict) and st.get("name") == owner
+                               for st in c.get("supertypes") or [])]
+                if len(subs) >= 2:
+                    triggers.add(("pattern", "variation", types[0]["id"]))
+
+    if backlog_docs and owner_type_ids:
+        for f in cd_backlog.touching(backlog_docs, sorted(owner_type_ids), []):
+            triggers.add(("pattern", "backlog", f["id"]))
+    for p in (plan_docs or [])[1:]:
+        if not isinstance(p, dict) or p.get("status") != "confirmed":
+            continue
+        pats = [x for x in p.get("affected") or [] if isinstance(x, str)]
+        if any(_glob_match(x, f) for x in pats for f in touched):
+            triggers.add(("pattern", "plan", p.get("id")))
+    cited = _verify_cited(cited_triggers or [], len(spec_lines), backlog_docs, plan_docs)
+    for c in cited:
+        triggers.add((c["class"], c["kind"], c["ref"]))
+
+    def lang_ok(path):
+        lang = lang_by_path.get(path) or cd_reach._lang(path)
+        return bool(lang) and lang in parsed_langs and path not in unav_files
+    no_grammar = sorted({(lang_by_path.get(p) or cd_reach._lang(p)) for p in touched
+                         if not lang_ok(p)} - {None})
+
+    # dismissals and cues
+    cues = cd_edits.find_cues(spec_lines)
+    cue_lines = {c["line"] for c in cues}
+    dis = []
+    for d in dismissals or []:
+        if d.get("line") not in cue_lines:
+            raise UsageError("--dismiss %s: not a spec cue line" % d.get("line"))
+        if not cd_edits._real_reason(d.get("reason")):
+            raise UsageError("--dismiss %s needs a real reason" % d.get("line"))
+        dis.append({"line": d["line"], "reason": _norm(d["reason"])})
+    dis.sort(key=lambda d: (d["line"], d["reason"]))
+    edit_lines = {int(e["ref"].split(":")[1]) for e in parsed
+                  if e["shape"] in cd_edits.CITING and e.get("ref")}
+    dis_lines = {d["line"] for d in dis}
+    cue_out = [{"line": c["line"], "phrase": c["phrase"], "text": c["text"],
+                "answered": "edit" if c["line"] in edit_lines else "dismissed" if c["line"] in dis_lines else None}
+               for c in cues]
+
+    inputs = {"edits": texts, "newPaths": fresh, "base": base, "specSha256": spec_sha,
+              "dismissals": dis, "rerun": rerun, "forced": forced, "citedTriggers": sorted(cited_triggers or [])}
+    callers.sort(key=lambda d: d["target"])
+    case_sites.sort(key=lambda d: d["target"])
+    readers.sort(key=lambda d: d["target"])
+    hits = sorted(hits, key=lambda h: (h["target"], h["file"], h["line"], h["category"]))[:HIT_CAP]
+    unverified.sort(key=lambda u: (u["target"], u["file"], u["line"], u["reason"]))
+    signals = {
+        "schema": 2,
+        "inputs": inputs,
+        "reach": {"callers": callers, "caseSites": case_sites, "readers": readers,
+                  "assumptionHits": hits, "unverified": unverified},
+        "cues": cue_out,
+        "triggers": [{"class": c, "kind": k, "ref": r} for c, k, r in sorted(triggers)],
+        "availabilityRequired": [{"name": n, "owner": o} for o, n in sorted(avail)],
+        "patternAdoptionAvailable": any(lang_ok(p) for p in touched),
+        "noGrammarLanguages": no_grammar,
+        "modelSchema": {"modelSchemaVersion": model.get("schemaVersion"),
+                        "extractorVersion": (model.get("generator") or {}).get("version")
+                        or model.get("extractorVersion")},
+    }
+    unc, ver, _ = decide2(signals)
+    signals["verdictUncapped"], signals["verdict"] = unc, ver
+    return inputs, signals
+
+
+def decide2(signals):
+    """Return (verdictUncapped, verdict, reasons): pattern trigger -> full, blast -> light, else skip.
+
+    A full verdict with no tree-sitter coverage on the touched files is capped at light; the
+    uncapped verdict is always returned so it can be compared (D-10, D-18)."""
+    s = signals or {}
+    trig = [t for t in s.get("triggers") or [] if isinstance(t, dict)]
+    pattern = [t for t in trig if t.get("class") == "pattern"]
+    blast = [t for t in trig if t.get("class") == "blast"]
+    reasons = ["pattern trigger %s (%s)" % (t.get("kind"), t.get("ref")) for t in pattern]
+    reasons += ["blast trigger %s (%s)" % (t.get("kind"), t.get("ref")) for t in blast]
+    if pattern:
+        uncapped = "full"
+    elif blast:
+        uncapped = "light"
+    else:
+        uncapped = "skip"
+        reasons = ["no trigger fired: additions and changes reached only by new inputs"]
+    verdict = uncapped
+    if uncapped == "full" and not s.get("patternAdoptionAvailable"):
+        verdict = "light"
+        t = pattern[0]
+        langs = ", ".join(s.get("noGrammarLanguages") or []) or "any touched file"
+        reasons.append("pattern trigger %s (%s) fired but no tree-sitter coverage for %s: pattern "
+                       "adoption is unavailable; blast radius runs through the grep checklist"
+                       % (t.get("kind"), t.get("ref"), langs))
+    return uncapped, verdict, reasons
+
+
+def cue_reasons(signals):
+    out = []
+    for c in (signals or {}).get("cues") or []:
+        ans = c.get("answered")
+        out.append("spec cue line %s (%s): %s" % (c.get("line"), c.get("phrase"),
+                                                  "answered by %s" % ans if ans else "UNANSWERED"))
+    return out
+
+
+def render_section2(verdict, forced, reasons, signals, sha):
+    lines = ["## Triage", "Verdict: " + (forced["verdict"] if forced else verdict)]
+    lines.append('Override: forced-by-developer: "%s"' % forced["phrase"] if forced else "Override: none")
+    lines.append("Reasons:")
+    lines += ["- " + r for r in reasons]
+    if forced:
+        lines.append("- script recommended %s; developer forced %s" % (verdict, forced["verdict"]))
+    body = dict(signals, signalsSha=sha)
+    lines += ["Signals:", "```json", json.dumps(body, indent=2, sort_keys=True), "```", ""]
+    return "\n".join(lines)
 
 
 # ------------------------------------------------------------ cli
