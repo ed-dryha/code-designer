@@ -56,7 +56,7 @@ Brainstorming names writing-plans as the next step and does not know about the d
 
 ## Skills
 
-- `design`: evidence-gated feature design with decision records, blast radius and pattern justification; runs between brainstorming and writing-plans.
+- `design`: evidence-gated feature design with decision records, blast radius and pattern justification; runs between brainstorming and writing-plans. It starts with a triage step (`cd_triage.py`) that returns `skip`, `light` or `full` from mechanical signals: a skip is an auditable stub the gate accepts, light allows blast radius plus at most 2 records, full is the whole flow. The developer can force a verdict by phrase ("force full", "skip design") and the override is recorded. For languages without a grammar the blast step adds a grep checklist (single-instance accessors, resource lookups, kind switches). Added fields need an availability row (when populated, when readable) and each spec behavior needs a spec coverage row.
 - `assessment`: finds design smells in existing code and records them in `docs/design/backlog.md`.
 - `futures`: captures what is likely to change next in `docs/design/future-plans.md` after a diff and your approval; pass `--interview` to force the interview even when confirmed plans exist.
 - `extract-structure`: tree-sitter structure extractor with an agent-read fallback.
@@ -78,3 +78,8 @@ Brainstorming names writing-plans as the next step and does not know about the d
 - Languages without a tree-sitter grammar use the agent-read fallback; its results are marked `inferred`.
 - The Codex trigger depends on the skill description plus the AGENTS.md snippet and is not guaranteed.
 - Stale detection needs git history; outside git no plan is reported stale.
+- Swift tree-sitter grammar support is not included yet (deferred); Swift files use the agent-read fallback and the grep checklist.
+- The checklist is grep heuristics, not analysis. The switch-site grep under-reports `.kind` switches on languages without a grammar.
+- Triage thresholds are starting values calibrated on two validation features (F1 and F2). F1's calibrated `skip` is fragile: a different `--additive`/`--modify` declaration flips it to light (see the phase 5 calibration notes).
+- The agent chooses the `--additive` and `--modify` declarations. `signalsSha` only detects after-the-fact edits of the Triage block; it cannot stop a hand-written valid sha.
+- The reruns of the S0 and S1 validation scenarios wait for the Phase 4 tooling (dependent reruns).

@@ -13,6 +13,14 @@ The design doc is `docs/design/<YYYY-MM-DD>-<feature-slug>-design.md`. The gate 
 - Model generatedAt: <timestamp from .code-designer/structure-model.json>
 - Coverage: <full | partial>; unavailable languages: <list or none>
 
+## Triage
+Verdict: <skip | light | full>
+Override: none
+Reasons:
+- <reason from the cd_triage render>
+Signals:
+(json block with signalsSha, pasted from the cd_triage render)
+
 ## Context
 <what exists today, with file and symbol references>
 
@@ -24,6 +32,17 @@ The design doc is `docs/design/<YYYY-MM-DD>-<feature-slug>-design.md`. The gate 
 | Kind | Name | Change | Signature |
 |------|------|--------|-----------|
 | class | PaymentGateway | added | interface with charge(amount) |
+
+## Availability
+| Name | Populated when | Readable when |
+|------|----------------|---------------|
+| regionCoverage | after the camera-side load completes | after load; nil before |
+
+## Spec Coverage
+| Spec lines | Quote | Covered by |
+|------------|-------|------------|
+| 3-3 | The new screen shows the point name. | DR-01 |
+| 4-4 | Out of scope: editing points. | no design change: out of scope |
 
 ## Blast Radius
 Scope: grep over <n> model-covered files (<languages>); the model has no call/import edges.
@@ -45,6 +64,22 @@ Scope: grep over <n> model-covered files (<languages>); the model has no call/im
 ## Handoff
 <next step: superpowers:writing-plans with this doc as Spec, or standalone note>
 ```
+
+## Triage section
+
+Paste the `render` output of `cd_triage.py` verbatim as `## Triage`: `Verdict:` (skip, light or full), `Override:` (`none`, or `forced-by-developer: "<phrase>"` only when the developer asked), `Reasons:` bullets, and the `Signals:` json block carrying `signalsSha`. The gate recomputes the sha and the recommended verdict; it rejects a tampered block and a silent downgrade. `--require-triage` makes the section mandatory.
+
+## Skip stub
+
+When the verdict is skip, the doc is only the header lines (Feature, Date, Spec, Model generatedAt, Coverage, Triage), the `## Triage` section and `## Handoff`. No decision records, blast radius or other sections are needed and the gate accepts it. A light verdict keeps the normal sections but allows at most 2 decision records.
+
+## Availability table
+
+Every added field, property or dependency in the Chosen Design table needs one row: `Name | Populated when | Readable when`. Both cells must say something concrete, never a placeholder. The section is needed only when such an addition exists. "Populated when" answers who sets it and at what moment; "Readable when" answers from where it can be safely read.
+
+## Spec Coverage table
+
+When a spec was read, map each behavior to the design: `Spec lines | Quote | Covered by`. Lines are a range in the spec, the quote is verified against them (whitespace normalized), and Covered by is an existing `DR-NN` id or `no design change: <reason>`.
 
 ## Record schema
 
