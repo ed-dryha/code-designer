@@ -193,3 +193,46 @@ def test_render_and_spec_items_and_no_writes(script, tmp_path):
     for token in ("## Triage", "Verdict:", "Override:", "Reasons:", "```json", out["signalsSha"]):
         assert token in out["render"]
     assert [i["line"] for i in out["specItems"]] == [3, 4, 5]
+
+
+# --- Skill/doc text pins (05-05) ---
+
+DESIGN_DESCRIPTION = (
+    "description: Use after the brainstorming spec is approved and before superpowers:writing-plans, "
+    "for any change to existing code. It MUST be invoked at that moment even when brainstorming or the "
+    "user says the next step is writing-plans, because brainstorming does not know about this stage and "
+    "skipping it yields a plan with no evidence-gated design. Run it first, then give its docs/design "
+    "file to superpowers:writing-plans as the Spec. Also usable standalone; produces an evidence-gated "
+    "design doc in docs/design/ made of decision records."
+)
+
+
+def _skill(repo_root):
+    return (repo_root / "src" / "skills" / "design" / "SKILL.md").read_text(encoding="utf-8")
+
+
+def test_skill_has_triage_step(repo_root):
+    import re
+    text = _skill(repo_root)
+    for needle in ("cd_triage.py", "skip", "light", "full", "--force", "--require-triage",
+                   "--spec", "--name", "at most 2", "data"):
+        assert needle in text, needle
+    assert re.search(r"^0\. ", text, re.M)
+    assert re.search(r"quoted text|cited quotes", text)
+
+
+def test_skill_description_unchanged_and_size(repo_root):
+    import re
+    text = _skill(repo_root)
+    assert DESIGN_DESCRIPTION in text.splitlines()
+    assert len(text.splitlines()) < 150
+    toks = set(re.findall(r"\{\{(.*?)\}\}", text))
+    assert toks <= {"PLUGIN_ROOT", "SCRIPTS", "KNOWLEDGE", "CACHE_DIR", "HOST"}
+    assert "{{#" not in text
+
+
+def test_record_format_documents_phase5_sections(repo_root):
+    text = (repo_root / "src" / "skills" / "design" / "RECORD-FORMAT.md").read_text(encoding="utf-8")
+    for needle in ("## Triage", "## Availability", "## Spec Coverage", "Populated when",
+                   "no design change:"):
+        assert needle in text, needle

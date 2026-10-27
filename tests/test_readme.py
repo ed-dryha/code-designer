@@ -69,3 +69,12 @@ def test_paths_exist_or_allowed(readme):
         if "<" in m:
             continue
         assert m in ALLOWED_OUTPUTS or (ROOT / m).exists(), m
+
+
+def test_phase5_readme_content(readme):
+    low = readme.lower()
+    for s in ("triage", "skip", "light", "full", "grep checklist", "availability", "spec coverage"):
+        assert s in low, s
+    assert "swift" in low and "grammar" in low
+    for s in ("signalsSha", "--additive", "--modify", "fragile"):
+        assert s in readme, s
