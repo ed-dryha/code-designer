@@ -7,6 +7,7 @@
 
 Usage: cd_gate.py <doc.md> --root DIR --model PATH [--kb DIR] [--tolerance N]
 [--backlog PATH] [--futures PATH] [--exclude-plan ID ...] [--require-triage]
+[--spec PATH]
 Exit codes: 0 all pass, 1 any fail, 2 usage/IO. Prints a JSON array of
 {record, check, status[, detail]} to stdout and "N/M checks pass" to stderr.
 """
@@ -20,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import yaml  # noqa: E402
 
+import cd_common  # noqa: E402
 import cd_triage  # noqa: E402
 import cd_verify  # noqa: E402
 
@@ -165,6 +167,168 @@ def gate_triage(text, require):
         add("light-records", "pass" if n <= MAX_LIGHT_RECORDS else "light-too-many-records",
             **({} if n <= MAX_LIGHT_RECORDS else {"detail": "%d records (max %d)" % (n, MAX_LIGHT_RECORDS)}))
     return res, verdict
+
+
+CHOSEN_H = re.compile(r"^##\s+Chosen Design\s*$")
+AVAIL_H = re.compile(r"^##\s+Availability\s*$")
+COVER_H = re.compile(r"^##\s+Spec Coverage\s*$")
+PLACEHOLDERS = ("", "-", "--", "n/a", "na", "tbd", "none", "?", "todo")
+SEP_CELL = re.compile(r"^:?-{2,}:?$")
+AVAIL_KINDS = ("field", "property", "dependency")
+SPEC_CELL = re.compile(r"^(\d+)(?:\s*-\s*(\d+))?\s*(?:`([^`]+)`)?\s*$")
+DR_ID = re.compile(r"^DR-\S+$")
+NO_CHANGE = re.compile(r"^no design change:(.*)$", re.I)
+
+
+def _table(sec):
+    """Return (header_cells, [(line_no, cells)]) of the first pipe table in a section, or None."""
+    rows = []
+    for n, t in sec or []:
+        t = t.strip()
+        if not t.startswith("|"):
+            if rows:
+                break
+            continue
+        cells = [c.strip() for c in t.strip("|").split("|")]
+        if all(SEP_CELL.match(c) for c in cells if c):
+            continue
+        rows.append((n, cells))
+    if not rows:
+        return None
+    return rows[0][1], rows[1:]
+
+
+def _placeholder(cell):
+    return cell.strip().strip("`").strip().lower() in PLACEHOLDERS
+
+
+def gate_availability(text):
+    """Added fields/properties/dependencies need an ## Availability row (D-08)."""
+    res = []
+    lines = text.split("\n")
+    tab = _table(_section(lines, CHOSEN_H))
+    if tab is None:
+        return res
+    head = [h.lower() for h in tab[0]]
+    try:
+        ik, inm, ich = head.index("kind"), head.index("name"), head.index("change")
+    except ValueError:
+        return res
+    need = []
+    for n, c in tab[1]:
+        if len(c) > max(ik, inm, ich) and c[ik].lower() in AVAIL_KINDS and c[ich].lower().startswith("added"):
+            need.append((n, c[inm]))
+    if not need:
+        return res
+
+    def add(check, status, **extra):
+        res.append({"record": "availability", "check": check, "status": status, **extra})
+
+    sec = _section(lines, AVAIL_H)
+    if sec is None:
+        add("availability-section", "availability-missing-section", detail="## Availability")
+        return res
+    atab = _table(sec)
+    arows = []
+    if atab is not None:
+        ah = [h.lower() for h in atab[0]]
+        try:
+            ia, ip, ir = ah.index("name"), ah.index("populated when"), ah.index("readable when")
+            arows = [(c[ia], c[ip], c[ir]) for _n, c in atab[1] if len(c) > max(ia, ip, ir)]
+        except ValueError:
+            arows = []
+    for n, name in need:
+        key = name.strip("` ").lower()
+        match = [r for r in arows if key and (key in r[0].strip("` ").lower() or r[0].strip("` ").lower() in key)
+                 and r[0].strip("` ")]
+        if not match:
+            add("availability-row", "availability-missing-row", line=n, detail=name)
+        elif any(_placeholder(r[1]) or _placeholder(r[2]) for r in match[:1]):
+            add("availability-row", "availability-empty", line=n, detail=name)
+        else:
+            add("availability-row", "pass", line=n)
+    return res
+
+
+def resolve_spec(text, root, flag):
+    """Return (lines|None, error|None). None/None means the rule is skipped."""
+    raw = flag
+    if raw is None:
+        for ln in text.split("\n"):
+            m = re.match(r"^[-*]?\s*Spec:\s*(.+?)\s*$", ln)
+            if m:
+                raw = m.group(1).strip("`")
+                break
+    if raw is None or raw.lower() == "none":
+        return None, None
+    if "\x00" in raw or ".." in raw.replace("\\", "/").split("/"):
+        return None, "path-escape"
+    full = os.path.realpath(raw if os.path.isabs(raw) else os.path.join(root, raw))
+    if full != root and not full.startswith(root + os.sep):
+        return None, "path-escape"
+    if not os.path.isfile(full):
+        return None, None
+    try:
+        if os.path.getsize(full) > MAX_DOC_BYTES:
+            return None, "spec-too-large"
+        with open(full, "rb") as fh:
+            body = fh.read().decode("utf-8", errors="replace")
+    except OSError:
+        return None, None
+    ls = body.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    if ls and ls[-1] == "":
+        ls.pop()
+    return ls, None
+
+
+def gate_spec_coverage(text, spec_lines, record_ids, spec_error=None):
+    """Every listed Spec Coverage row must cite real spec lines and map to a DR or a reason (D-09, D-10)."""
+    res = []
+
+    def add(check, status, **extra):
+        res.append({"record": "coverage", "check": check, "status": status, **extra})
+
+    if spec_error:
+        add("spec-path", "coverage-bad-line", detail=spec_error)
+        return res
+    if spec_lines is None:
+        return res
+    sec = _section(text.split("\n"), COVER_H)
+    tab = _table(sec) if sec is not None else None
+    if tab is None:
+        add("coverage-section", "coverage-missing-section", detail="## Spec Coverage")
+        return res
+    for n, c in tab[1]:
+        cell = c[0] if c else ""
+        m = SPEC_CELL.match(cell)
+        if not m:
+            add("coverage-line", "coverage-bad-line", line=n, detail=cell)
+            continue
+        a = int(m.group(1))
+        b = int(m.group(2)) if m.group(2) else a
+        if not (1 <= a <= b <= len(spec_lines)):
+            add("coverage-line", "coverage-bad-line", line=n, detail="%d-%d out of range (1-%d)" % (a, b, len(spec_lines)))
+            continue
+        span = spec_lines[a - 1:b]
+        if not any(x.strip() for x in span):
+            add("coverage-line", "coverage-bad-line", line=n, detail="blank spec line")
+            continue
+        add("coverage-line", "pass", line=n)
+        if m.group(3):
+            nq = cd_common.normalize_lines(m.group(3)).strip("\n")
+            body = "\n".join(cd_common.normalize_lines(x) for x in span)
+            add("coverage-quote", "pass" if nq and nq in body else "coverage-quote-mismatch", line=n,
+                **({} if nq and nq in body else {"detail": m.group(3)}))
+        maps = c[2].strip().strip("`") if len(c) > 2 else ""
+        nc = NO_CHANGE.match(maps)
+        if nc:
+            add("coverage-maps", "pass" if nc.group(1).strip() and not _placeholder(nc.group(1)) else "coverage-no-reason", line=n)
+        elif DR_ID.match(maps):
+            add("coverage-maps", "pass" if maps in record_ids else "coverage-unknown-dr", line=n,
+                **({} if maps in record_ids else {"detail": maps}))
+        else:
+            add("coverage-maps", "coverage-unmapped", line=n, detail=maps)
+    return res
 
 
 def gate_blast(text, root, tolerance):
@@ -419,6 +583,7 @@ def main(argv=None):
     ap.add_argument("--futures")
     ap.add_argument("--exclude-plan", action="append", default=[], dest="exclude_plan")
     ap.add_argument("--require-triage", action="store_true", dest="require_triage")
+    ap.add_argument("--spec")
     ap.add_argument("--tolerance", type=int, default=0)
     args = ap.parse_args(sys.argv[1:] if argv is None else argv)
     root = os.path.realpath(args.root)
@@ -475,6 +640,9 @@ def main(argv=None):
     results.extend(gate_blast(text, root, args.tolerance))
     results.extend(gate_touched(text, backlog))
     results.extend(gate_plans_used(text, plans, excluded))
+    results.extend(gate_availability(text))
+    spec_lines, spec_err = resolve_spec(text, root, args.spec)
+    results.extend(gate_spec_coverage(text, spec_lines, {h for h, _b in records}, spec_err))
 
     print(json.dumps(results, indent=2))
     bad = sum(1 for r in results if r["status"] != "pass")

@@ -1,6 +1,6 @@
 # Design: payments
 
-Spec: spec.md
+Spec: none
 
 ## Decision Records
 
