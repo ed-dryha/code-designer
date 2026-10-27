@@ -157,3 +157,98 @@ def test_output_shape(script, tmp_path):
 
 def test_usage_error(script):
     assert run_py(script).returncode == 2
+
+
+S1 = FIX / "triage" / "s1-single-instance"
+
+
+def _unav_repo(tmp_path, files, language="swift"):
+    root = tmp_path / "repo"
+    root.mkdir()
+    for name, text in files.items():
+        p = root / name
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text)
+    model = {"schemaVersion": 1, "symbols": [],
+             "coverage": {"files": [], "unavailable": [
+                 {"language": language, "files": list(files), "reason": "no-grammar"}]}}
+    mp = tmp_path / "model.json"
+    mp.write_text(json.dumps(model))
+    return root, mp
+
+
+def test_name_mode_finds_string_literal_hit(script):
+    out = _blast(script, S1 / "model.json", S1, "--name", "RegionPack")
+    hit = [h for h in out["grep"] if 'forResource: "RegionPack"' in h["quote"]]
+    assert len(hit) == 1
+    assert hit[0]["file"] == "Molfar/App/AppState.swift" and hit[0]["line"] == 10
+    assert hit[0]["quote"].startswith("if let url = Bundle.main.url(forResource")
+    assert any(h["file"] == "Tests/RegionPackTests.swift" for h in out["grep"])
+
+
+def test_name_mode_without_symbols_and_usage(script, tmp_path):
+    root, mp = _repo(tmp_path, {"a.py": "x = Widget()\n"}, [])
+    out = _blast(script, mp, root, "--name", "Widget")
+    assert [h["file"] for h in out["grep"]] == ["a.py"]
+    assert run_py(script, "--model", mp, "--root", root).returncode == 2
+
+
+def test_name_mode_common_name_suppressed(script, tmp_path):
+    files = {f"f{i}.py": "x = Widget()\n" for i in range(4)}
+    root, mp = _repo(tmp_path, files, [])
+    out = _blast(script, mp, root, "--name", "Widget", "--max-files", "2")
+    assert out["grep"] == []
+    assert any(u["reason"] == "common-name" for u in out["unverified"])
+
+
+def test_checklist_resource_lookup_and_single_instance(script):
+    out = _blast(script, S1 / "model.json", S1, "--name", "RegionPack")
+    cl = out["checklist"]
+    res = [c for c in cl if c["category"] == "resource-lookup"]
+    assert res and res[0]["file"] == "Molfar/App/AppState.swift" and res[0]["line"] == 10
+    assert set(res[0]) >= {"file", "line", "category", "via", "tag", "quote"}
+    assert res[0]["via"] == "checklist:resource-lookup" and res[0]["tag"] == "grep"
+    sia = [c for c in cl if c["category"] == "single-instance-accessor"]
+    assert sia and any(".bundled()" in c["quote"] for c in sia)
+
+
+def test_checklist_keys_and_empty_without_unavailable(script, tmp_path):
+    files = {"a.py": "class Order:\n    pass\n", "b.py": "o = Order()\n"}
+    root, mp = _repo(tmp_path, files, [_sym("a.py#Order", "Order", "class", "a.py", 1, 2)])
+    out = _blast(script, mp, root, "--symbol", "a.py#Order")
+    assert {"model", "grep", "unverified", "scope", "checklist"} <= set(out)
+    assert out["checklist"] == []
+
+
+def test_checklist_caps(script, tmp_path):
+    root, mp = _unav_repo(tmp_path, {"A.swift": "let a = Bundle.main.url(x)\n" * 40})
+    out = _blast(script, mp, root, "--name", "zzzzzz")
+    res = [c for c in out["checklist"] if c["category"] == "resource-lookup"]
+    assert len(res) == 15
+    assert len(out["checklist"]) <= 60
+    assert any(u["reason"] == "truncated" for u in out["unverified"])
+
+
+def test_checklist_total_cap(script, tmp_path):
+    text = ("let a = Bundle.main.x\nlet b = v.shared\nlet c = d ?? e\n"
+            "let f = \"k.json\"\nlet g = defaults.forKey(\"zz\")\n") * 20
+    root, mp = _unav_repo(tmp_path, {"A.swift": text})
+    out = _blast(script, mp, root, "--name", "zzzzzz")
+    assert len(out["checklist"]) <= 60
+
+
+def test_checklist_symlink_escape_skipped(script, tmp_path):
+    outside = tmp_path / "outside.swift"
+    outside.write_text("let s = Bundle.main.secret\n")
+    root, mp = _unav_repo(tmp_path, {"link.swift": "x\n"})
+    (root / "link.swift").unlink()
+    os.symlink(outside, root / "link.swift")
+    out = _blast(script, mp, root, "--name", "secret")
+    assert out["checklist"] == [] and "secret" not in json.dumps(out["grep"])
+
+
+def test_checklist_long_line_skipped(script, tmp_path):
+    long = "let a = Bundle.main.url(" + "x" * 450 + ")\n"
+    root, mp = _unav_repo(tmp_path, {"A.swift": long + "let b = Bundle.main.url(y)\n"})
+    out = _blast(script, mp, root, "--name", "zzzzzz")
+    assert [c["line"] for c in out["checklist"]] == [2]

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "symbols": [],
+  "coverage": {
+    "files": [],
+    "unavailable": [
+      {
+        "language": "swift",
+        "files": [
+          "Molfar/App/AppState.swift",
+          "Molfar/Core/RegionPack.swift",
+          "Molfar/Views/MapView.swift",
+          "Molfar/Views/PickerRow.swift",
+          "Molfar/Views/SearchView.swift",
+          "Tests/RegionPackTests.swift"
+        ],
+        "reason": "no-grammar"
+      }
+    ]
+  }
+}
