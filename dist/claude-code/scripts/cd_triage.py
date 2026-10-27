@@ -3,17 +3,20 @@
 # requires-python = ">=3.10"
 # dependencies = ["pyyaml==6.0.3"]
 # ///
-"""Design triage: mechanical signals plus a recommended skip|light|full verdict.
+"""Design triage (schema 2): per-edit declarations in, cited triggers and a binding verdict out.
 
 Usage: cd_triage.py --root DIR --model PATH --spec PATH
-                    [--modify NAME_OR_ID ...] [--additive NAME_OR_ID ...] [--new-path PATH ...]
-                    [--backlog PATH] [--futures PATH] [--force skip|light|full --force-phrase TEXT]
-Prints JSON {schema, inputs, signals, recommended, reasons, forced, signalsSha, specItems, render}.
-Exit 0 ok, 2 usage/IO/confinement. Never writes files.
+                    [--edit SHAPE:TARGET[=NEW][+state|+dependency][@REF] ...] [--new-path PATH ...]
+                    [--dismiss N:reason ...] [--trigger spec:N|backlog:ID|plan:ID ...]
+                    [--rerun-reason TEXT] [--backlog PATH] [--futures PATH]
+                    [--force skip|light|full --force-phrase TEXT]
+       cd_triage.py audit --root DIR --doc PATH [--base SHA] [--head REV]
+Prints JSON {schema, inputs, signals, recommended, verdictUncapped, reasons, forced, signalsSha,
+cues, render}. Exit 0 ok, 2 usage/IO/confinement. Never writes files.
 
-The agent declares only what the change does (modify / additive / new paths); every signal
-is computed here. `recommend()` and `signals_sha()` are importable so the gate can recheck
-a recorded Triage section.
+The agent declares only what each planned edit does; reach and triggers are computed here.
+`recommend()` and `signals_sha()` (schema 1, 0.2.0) stay importable so the gate can recheck a
+recorded Triage section; `collect2`/`decide2` are the schema-2 equivalents.
 """
 import argparse
 import fnmatch
@@ -578,20 +581,41 @@ def render_section2(verdict, forced, reasons, signals, sha):
 
 # ------------------------------------------------------------ cli
 
+REMOVED_FLAGS = "--modify/--additive were removed in 0.3.0; declare each planned edit with --edit SHAPE:TARGET (see the design skill step 0)"
+
+
+def _parse_dismissals(items):
+    out = []
+    for raw in items:
+        n, sep, reason = raw.partition(":")
+        if not sep or not n.strip().isdigit():
+            raise UsageError("--dismiss expects N:reason, got %r" % raw[:40])
+        out.append({"line": int(n), "reason": reason})
+    return out
+
+
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Design triage signals and recommended verdict")
+    args = list(sys.argv[1:] if argv is None else argv)
+    if args and args[0] == "audit":
+        return cd_audit.main(args[1:])
+    if any(x in ("--modify", "--additive") or x.startswith(("--modify=", "--additive=")) for x in args):
+        print("error: " + REMOVED_FLAGS, file=sys.stderr)
+        return 2
+    ap = argparse.ArgumentParser(description="Design triage declarations, reach and verdict (schema 2)")
     ap.add_argument("--root", required=True)
     ap.add_argument("--model", required=True)
     ap.add_argument("--spec", required=True)
-    ap.add_argument("--modify", action="append", default=[])
-    ap.add_argument("--additive", action="append", default=[])
+    ap.add_argument("--edit", action="append", default=[])
     ap.add_argument("--new-path", action="append", default=[], dest="new_path")
+    ap.add_argument("--dismiss", action="append", default=[])
+    ap.add_argument("--trigger", action="append", default=[])
+    ap.add_argument("--rerun-reason", dest="rerun_reason")
     ap.add_argument("--backlog")
     ap.add_argument("--futures")
     ap.add_argument("--force", choices=VERDICTS)
     ap.add_argument("--force-phrase", default="")
     try:
-        a = ap.parse_args(sys.argv[1:] if argv is None else argv)
+        a = ap.parse_args(args)
     except SystemExit as ex:
         return 2 if ex.code else 0
     try:
@@ -601,6 +625,11 @@ def main(argv=None):
         phrase = " ".join(a.force_phrase.replace('"', "'").split())[:200]
         if a.force and not phrase:
             raise UsageError("--force needs a non-empty --force-phrase (the override is recorded)")
+        rerun = None
+        if a.rerun_reason is not None:
+            rerun = _norm(a.rerun_reason)
+            if not rerun:
+                raise UsageError("--rerun-reason must not be empty")
         with open(a.model, encoding="utf-8") as fh:
             model = json.load(fh)
         if not isinstance(model.get("symbols"), list):
@@ -608,6 +637,12 @@ def main(argv=None):
         spec = _confined(root, a.spec)
         if not os.path.isfile(spec):
             raise UsageError("spec is not a file")
+        with open(spec, "rb") as fh:
+            raw = fh.read(cd_common.MAX_BYTES + 1)
+        if len(raw) > cd_common.MAX_BYTES:
+            raise UsageError("spec is larger than %d bytes" % cd_common.MAX_BYTES)
+        spec_sha = hashlib.sha256(raw).hexdigest()
+        lines = cd_edits.spec_lines(raw.decode("utf-8", errors="replace"))
         new_paths = [_new_path(root, p) for p in a.new_path]
         backlog_docs = plan_docs = None
         if a.backlog:
@@ -618,19 +653,28 @@ def main(argv=None):
             fp = _confined(root, a.futures)
             if os.path.isfile(fp):
                 plan_docs = cd_futures.load(fp)
-        inputs, signals = collect(model, root, a.modify, a.additive, new_paths, backlog_docs, plan_docs)
+        base = cd_edits.head_sha(root)
+        if base:
+            dirty = cd_edits.tracked_dirty(root)
+            if dirty:
+                raise UsageError("commit or stash tracked source changes before triage (%s)"
+                                 % ", ".join(sorted(dirty)[:5]))
+        forced = {"verdict": a.force, "phrase": phrase} if a.force else None
+        inputs, signals = collect2(model, root, a.edit, new_paths, backlog_docs, plan_docs, lines,
+                                   _parse_dismissals(a.dismiss), a.trigger, base or "none", rerun,
+                                   spec_sha, forced)
         inputs["spec"] = _relpath(root, spec)
-        items = _spec_items(spec)
-    except (UsageError, OSError, ValueError, KeyError, TypeError, cd_futures.PlansError,
-            cd_backlog.yaml.YAMLError) as ex:
+    except (UsageError, cd_edits.EditError, OSError, ValueError, KeyError, TypeError,
+            cd_futures.PlansError, cd_backlog.yaml.YAMLError) as ex:
         print("error: %s" % ex, file=sys.stderr)
         return 2
-    verdict, reasons = _decide(signals)
+    _unc, verdict, reasons = decide2(signals)
+    reasons = reasons + cue_reasons(signals)
     sha = signals_sha(signals)
-    forced = {"verdict": a.force, "phrase": phrase} if a.force else None
-    out = {"schema": 1, "inputs": inputs, "signals": signals, "recommended": verdict,
-           "reasons": reasons, "forced": forced, "signalsSha": sha, "specItems": items,
-           "render": render_section(verdict, forced, reasons, signals, sha)}
+    out = {"schema": 2, "inputs": inputs, "signals": signals, "recommended": verdict,
+           "verdictUncapped": signals["verdictUncapped"], "reasons": reasons, "forced": forced,
+           "signalsSha": sha, "cues": signals["cues"],
+           "render": render_section2(verdict, forced, reasons, signals, sha)}
     print(json.dumps(out, indent=2))
     return 0
 

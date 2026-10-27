@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "cd-extract",
+    "version": "0.1.0",
+    "pack": "1.22.1",
+    "source": "tree-sitter"
+  },
+  "root": ".",
+  "generatedAt": "2026-10-27T21:32:06Z",
+  "status": "complete",
+  "coverage": {
+    "files": [
+      {
+        "path": "pkg/__init__.py",
+        "language": "python",
+        "parsed": true,
+        "symbols": 0,
+        "hasErrors": false,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "provenance": "tree-sitter"
+      },
+      {
+        "path": "pkg/a.py",
+        "language": "python",
+        "parsed": true,
+        "symbols": 1,
+        "hasErrors": false,
+        "sha256": "f4d54925f363c713d83605d8ead5d0cc35530a719bfe6f86a1176da67c0ea327",
+        "provenance": "tree-sitter"
+      },
+      {
+        "path": "pkg/b.py",
+        "language": "python",
+        "parsed": true,
+        "symbols": 1,
+        "hasErrors": false,
+        "sha256": "6e2238d2cd9d19000177dfe43281b5716260f356ad596eeb89649fdb7eeb80c4",
+        "provenance": "tree-sitter"
+      },
+      {
+        "path": "pkg/base.py",
+        "language": "python",
+        "parsed": true,
+        "symbols": 2,
+        "hasErrors": false,
+        "sha256": "772468162c5056dc261d2a01c05359867ab068e285c161720a88a7a52efd1681",
+        "provenance": "tree-sitter"
+      },
+      {
+        "path": "pkg/solo.py",
+        "language": "python",
+        "parsed": true,
+        "symbols": 2,
+        "hasErrors": false,
+        "sha256": "1947a03cbf0729a54ef9ade9fdd77b7e3b2b84372db8d1c6c3f57096f91ab34d",
+        "provenance": "tree-sitter"
+      },
+      {
+        "path": "pkg/widget.py",
+        "language": "python",
+        "parsed": true,
+        "symbols": 2,
+        "hasErrors": false,
+        "sha256": "73a031a2dab7c0b7f9333b5fffed7e680bf52acabd9659d732a16855d67c6f5d",
+        "provenance": "tree-sitter"
+      }
+    ],
+    "unavailable": [],
+    "skipped": []
+  },
+  "symbols": [
+    {
+      "id": "pkg/a.py#A",
+      "kind": "class",
+      "name": "A",
+      "parent": null,
+      "file": "pkg/a.py",
+      "span": {
+        "startLine": 4,
+        "endLine": 5
+      },
+      "signature": "class A(Base)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "Base"
+        }
+      ],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "ca76c6323de7"
+    },
+    {
+      "id": "pkg/b.py#B",
+      "kind": "class",
+      "name": "B",
+      "parent": null,
+      "file": "pkg/b.py",
+      "span": {
+        "startLine": 4,
+        "endLine": 5
+      },
+      "signature": "class B(Base)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [
+        {
+          "relation": "extends",
+          "name": "Base"
+        }
+      ],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "46c63bad3216"
+    },
+    {
+      "id": "pkg/base.py#Base",
+      "kind": "class",
+      "name": "Base",
+      "parent": null,
+      "file": "pkg/base.py",
+      "span": {
+        "startLine": 1,
+        "endLine": 3
+      },
+      "signature": "class Base",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "3462ab8c9538"
+    },
+    {
+      "id": "pkg/base.py#Base.run",
+      "kind": "method",
+      "name": "run",
+      "parent": "pkg/base.py#Base",
+      "file": "pkg/base.py",
+      "span": {
+        "startLine": 2,
+        "endLine": 3
+      },
+      "signature": "def run(self)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "328773bf6754"
+    },
+    {
+      "id": "pkg/solo.py#Solo",
+      "kind": "class",
+      "name": "Solo",
+      "parent": null,
+      "file": "pkg/solo.py",
+      "span": {
+        "startLine": 1,
+        "endLine": 3
+      },
+      "signature": "class Solo",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "b6926f007adc"
+    },
+    {
+      "id": "pkg/solo.py#Solo.go",
+      "kind": "method",
+      "name": "go",
+      "parent": "pkg/solo.py#Solo",
+      "file": "pkg/solo.py",
+      "span": {
+        "startLine": 2,
+        "endLine": 3
+      },
+      "signature": "def go(self)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "614475c40213"
+    },
+    {
+      "id": "pkg/widget.py#Widget",
+      "kind": "class",
+      "name": "Widget",
+      "parent": null,
+      "file": "pkg/widget.py",
+      "span": {
+        "startLine": 1,
+        "endLine": 3
+      },
+      "signature": "class Widget",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "68c40f6b9efe"
+    },
+    {
+      "id": "pkg/widget.py#Widget.draw",
+      "kind": "method",
+      "name": "draw",
+      "parent": "pkg/widget.py#Widget",
+      "file": "pkg/widget.py",
+      "span": {
+        "startLine": 2,
+        "endLine": 3
+      },
+      "signature": "def draw(self)",
+      "visibility": null,
+      "static": false,
+      "supertypes": [],
+      "typeText": null,
+      "provenance": "tree-sitter",
+      "inferred": false,
+      "hash": "1f690b93bcd5"
+    }
+  ]
+}

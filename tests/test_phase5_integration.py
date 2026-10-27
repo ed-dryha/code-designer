@@ -56,7 +56,7 @@ def test_skip_flow_triage_stub_gate(tree, tmp_path):
     s = base / TREES[name]
     root = _copy(tmp_path, "s0-additive")
     r = run_py(s / "cd_triage.py", "--root", root, "--model", root / "model.json",
-               "--spec", root / "spec.md", "--additive", "Kind",
+               "--spec", root / "spec.md", "--edit", "add-case:Kind=point",
                "--new-path", "Sources/New.swift")
     assert r.returncode == 0, r.stderr
     out = json.loads(r.stdout)
@@ -77,12 +77,12 @@ def test_single_instance_is_full_with_checklist(tree, tmp_path):
     s = base / TREES[name]
     root = _copy(tmp_path, "s1-single-instance")
     r = run_py(s / "cd_triage.py", "--root", root, "--model", root / "model.json",
-               "--spec", root / "spec.md", "--modify", "RegionPack")
+               "--spec", root / "spec.md", "--edit", "change-assumption:RegionPack@spec:3")
     assert r.returncode == 0, r.stderr
     out = json.loads(r.stdout)
-    assert out["recommended"] == "full"
+    assert out["verdictUncapped"] == "full" and out["recommended"] == "light"
     assert any(h["category"] == "resource-lookup" and h["file"].endswith("AppState.swift") and h["line"] == 11
-               for h in out["signals"]["assumptionHits"])
+               for h in out["signals"]["reach"]["assumptionHits"])
     b = run_py(s / "cd_blast.py", "--model", root / "model.json", "--root", root, "--name", "RegionPack")
     assert b.returncode == 0, b.stderr
     blast = json.loads(b.stdout)

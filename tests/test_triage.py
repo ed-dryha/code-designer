@@ -103,96 +103,12 @@ def test_signals_sha_stable():
     assert cd_triage.signals_sha(dict(a, switchSites=3)) != cd_triage.signals_sha(a)
 
 
-def test_cli_f2_mirror_full(script):
-    root = FIX / "s1-single-instance"
-    r = triage(script, root, "--modify", "RegionPack")
-    assert r.returncode == 0, r.stderr
-    out = json.loads(r.stdout)
-    assert out["recommended"] == "full" and out["schema"] == 1
-    s = out["signals"]
-    assert s["dependentFiles"]["RegionPack"]["nonTest"] >= 4
-    assert s["modelAvailable"] is False and "swift" in s["noGrammarLanguages"]
-    assert any(h["file"].endswith("AppState.swift") and h["line"] == 11 for h in s["assumptionHits"])
-    assert out["signalsSha"] == cd_triage.signals_sha(s)
-
-
-def test_cli_additive_skip_and_reclassify(script, tmp_path):
+def test_cli_old_flags_rejected_with_edit_hint(script, tmp_path):
     root = copy_fix(tmp_path, "s0-additive")
-    r = triage(script, root, "--additive", "Kind", "--new-path", "Sources/New.swift")
-    assert r.returncode == 0, r.stderr
-    out = json.loads(r.stdout)
-    assert out["recommended"] == "skip", out["reasons"]
-    assert out["signals"]["switchSites"] == 1
-    r = triage(script, root, "--additive", "Kind", "--new-path", "Sources/Describe.swift")
-    out = json.loads(r.stdout)
-    assert out["inputs"]["reclassified"] == ["Sources/Describe.swift"]
-    assert out["signals"]["touchedExisting"] == 2
-    assert out["recommended"] == "light"
-
-
-def test_cli_force_recorded(script):
-    root = FIX / "s1-single-instance"
-    r = triage(script, root, "--modify", "RegionPack", "--force", "skip", "--force-phrase", "skip design")
-    out = json.loads(r.stdout)
-    assert out["recommended"] == "full"
-    assert out["forced"] == {"verdict": "skip", "phrase": "skip design"}
-    assert 'Override: forced-by-developer: "skip design"' in out["render"]
-    assert out["render"].count("Verdict: skip") == 1
-    assert triage(script, root, "--modify", "RegionPack", "--force", "skip").returncode == 2
-
-
-def test_cli_rejects(script, tmp_path):
-    root = copy_fix(tmp_path, "s0-additive")
-    assert triage(script, root, "--modify", "dir/x.py#Nope").returncode == 2
-    assert triage(script, root, "--modify", "bad name!").returncode == 2
-    assert triage(script, root, "--additive", "Kind", "--new-path", "../x").returncode == 2
-    assert triage(script, root, "--additive", "Kind", "--new-path", "/etc/x").returncode == 2
-    outside = tmp_path / "outside.md"
-    outside.write_text("1. x\n")
-    r = run_py(script, "--root", root, "--model", root / "model.json", "--spec", outside,
-               "--additive", "Kind")
-    assert r.returncode == 2
-    link = root / "esc"
-    os.symlink(tmp_path, link)
-    assert triage(script, root, "--additive", "Kind", "--new-path", "esc/x.swift").returncode == 2
-    r = run_py(script, "--root", root, "--model", root / "model.json", "--spec", link / "outside.md",
-               "--additive", "Kind")
-    assert r.returncode == 2
-
-
-def test_cli_backlog_flag_full(script, tmp_path):
-    root = copy_fix(tmp_path, "s0-additive")
-    bl = root / "backlog.md"
-    bl.write_text(
-        "schema: 1\nkind: code-designer-backlog\n---\nid: F-god-class-abcdef\n"
-        "symbol: Sources/Kind.swift#Kind\nstatus: open\npriority: High\nrationale: r\n"
-        "evidence:\n- file: Sources/Kind.swift\n  startLine: 1\n  endLine: 1\n  quote: q\n")
-    r = triage(script, root, "--modify", "Kind", "--backlog", bl)
-    out = json.loads(r.stdout)
-    assert out["signals"]["backlogFlagged"][0]["id"] == "F-god-class-abcdef"
-    assert out["recommended"] == "full"
-
-
-def test_cli_plan_overlap(script, tmp_path):
-    root = copy_fix(tmp_path, "s0-additive")
-    fp = root / "future-plans.md"
-    fp.write_text(
-        "schema: 1\nkind: code-designer-futures\n---\nid: P-views-abcdef\ntitle: Views\n"
-        "status: confirmed\naffected:\n- Sources/**\n")
-    r = triage(script, root, "--additive", "Kind", "--futures", fp)
-    out = json.loads(r.stdout)
-    assert out["signals"]["planOverlap"][0]["id"] == "P-views-abcdef"
-    assert out["recommended"] in ("light", "full")
-
-
-def test_render_and_spec_items_and_no_writes(script, tmp_path):
-    root = copy_fix(tmp_path, "s0-additive")
-    before = sorted(str(p) for p in root.rglob("*"))
-    out = json.loads(triage(script, root, "--additive", "Kind").stdout)
-    assert sorted(str(p) for p in root.rglob("*")) == before
-    for token in ("## Triage", "Verdict:", "Override:", "Reasons:", "```json", out["signalsSha"]):
-        assert token in out["render"]
-    assert [i["line"] for i in out["specItems"]] == [3, 4, 5]
+    for flag in ("--modify", "--additive"):
+        r = triage(script, root, flag, "Kind")
+        assert r.returncode == 2
+        assert "--edit" in r.stderr
 
 
 # --- Skill/doc text pins (05-05) ---

@@ -1,0 +1,32 @@
+{
+  "coverage": {
+    "files": [],
+    "skipped": [],
+    "unavailable": [
+      {
+        "files": [
+          "Molfar/App/AppState.swift",
+          "Molfar/Core/Loader.swift",
+          "Molfar/Core/RegionPack.swift",
+          "Molfar/Views/MapView.swift",
+          "Molfar/Views/PickerRow.swift",
+          "Molfar/Views/SearchView.swift",
+          "Tests/RegionPackTests.swift"
+        ],
+        "language": "swift",
+        "reason": "no-grammar"
+      }
+    ]
+  },
+  "generatedAt": "2026-10-27T00:00:00Z",
+  "generator": {
+    "name": "cd-extract",
+    "pack": null,
+    "source": "tree-sitter",
+    "version": "0.1.0"
+  },
+  "root": ".",
+  "schemaVersion": 1,
+  "status": "partial",
+  "symbols": []
+}

@@ -1,0 +1,40 @@
+{
+  "coverage": {
+    "files": [],
+    "skipped": [],
+    "unavailable": [
+      {
+        "files": [
+          "Sources/AppState.swift",
+          "Sources/Dep0.swift",
+          "Sources/Dep1.swift",
+          "Sources/Dep2.swift",
+          "Sources/Dep3.swift",
+          "Sources/Dep4.swift",
+          "Sources/Dep5.swift",
+          "Sources/Dep6.swift",
+          "Sources/Dep7.swift",
+          "Sources/Dep8.swift",
+          "Sources/Dep9.swift",
+          "Sources/Describe.swift",
+          "Sources/PickerRow.swift",
+          "Sources/Place.swift",
+          "Sources/ViewpointPicker.swift"
+        ],
+        "language": "swift",
+        "reason": "no-grammar"
+      }
+    ]
+  },
+  "generatedAt": "2026-10-27T00:00:00Z",
+  "generator": {
+    "name": "cd-extract",
+    "pack": null,
+    "source": "tree-sitter",
+    "version": "0.1.0"
+  },
+  "root": ".",
+  "schemaVersion": 1,
+  "status": "partial",
+  "symbols": []
+}

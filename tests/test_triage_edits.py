@@ -149,3 +149,193 @@ def test_collect2_deterministic_and_relative(tmp_path):
     b = run_collect(root, "add-case-default")[1]
     assert json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
     assert str(tmp_path) not in json.dumps(a)
+
+
+# ---------------------------------------------------------------- CLI
+
+import hashlib  # noqa: E402
+import os  # noqa: E402
+import shutil  # noqa: E402
+import subprocess  # noqa: E402
+
+from conftest import run_py  # noqa: E402
+
+FIXD = Path(__file__).parent / "fixtures" / "triage"
+SCRIPT = Path(__file__).resolve().parent.parent / "src" / "extractor" / "cd_triage.py"
+
+F1_FLAGS = ["--edit", "add-case:Place.Kind=mapPoint", "--edit", "add-member:Place",
+            "--edit", "add-member:ViewpointPicker",
+            "--edit", "add-member:AppState=mapCoverage+state",
+            "--edit", "body-new-inputs:AppState.placeResolver@mapPoint",
+            "--new-path", "Sources/MapPicker.swift", "--new-path", "Sources/MapCoverage.swift"]
+
+
+def cp(tmp_path, name):
+    r = tmp_path / name
+    shutil.copytree(FIXD / name, r, symlinks=True)
+    return r
+
+
+def cli(root, *extra, spec="spec.md"):
+    return run_py(SCRIPT, "--root", root, "--model", root / "model.json", "--spec", root / spec, *extra)
+
+
+def cli_json(root, *extra, **kw):
+    r = cli(root, *extra, **kw)
+    assert r.returncode == 0, r.stderr
+    return json.loads(r.stdout)
+
+
+def test_cli_f1_like_skip_with_availability(tmp_path):
+    root = cp(tmp_path, "f1-like")
+    out = cli_json(root, *F1_FLAGS)
+    assert out["schema"] == 2 and out["recommended"] == "skip"
+    s = out["signals"]
+    assert s["availabilityRequired"] == [{"name": "mapCoverage", "owner": "AppState"}]
+    assert not [t for t in s["triggers"] if t["class"] == "pattern"]
+    assert s["verdictUncapped"] == "skip"
+    unanswered = [c for c in out["cues"] if c["answered"] is None]
+    assert len(unanswered) == 1 and unanswered[0]["line"] == 3
+    assert "UNANSWERED" in "\n".join(out["reasons"])
+    out2 = cli_json(root, *F1_FLAGS, "--dismiss", "3:not a change: wording only")
+    assert [c["answered"] for c in out2["cues"]] == ["dismissed"]
+    assert out2["inputs"]["dismissals"] == [{"line": 3, "reason": "not a change: wording only"}]
+
+
+def test_cli_f1_flag_pin_availability_nonempty(tmp_path):
+    out = cli_json(cp(tmp_path, "f1-like"), *F1_FLAGS)
+    assert out["signals"]["availabilityRequired"]
+
+
+def test_cli_body_new_input_grounded_in_spec_or_rejected(tmp_path):
+    root = cp(tmp_path, "f1-like")
+    flags = ["--edit", "body-new-inputs:AppState.placeResolver@mapPoint"]
+    assert cli(root, *flags).returncode == 0          # mapPoint appears only in the spec text
+    (root / "spec.md").write_text("# Map\n- Tapping the map picks a viewpoint.\n", encoding="utf-8")
+    r = cli(root, *flags)
+    assert r.returncode == 2
+    assert "names no declared =NEW and does not appear in the spec" in r.stderr
+
+
+def test_cli_f2_like_uncapped_full_capped_light(tmp_path):
+    root = cp(tmp_path, "f2-like")
+    out = cli_json(root, "--edit", "change-assumption:bundled@spec:2")
+    assert out["verdictUncapped"] == "full" and out["recommended"] == "light"
+    assert any("no tree-sitter coverage for swift" in r and "assumption" in r for r in out["reasons"])
+    reach = out["signals"]["reach"]
+    assert reach["readers"][0]["count"] >= 5
+    assert any(h["category"] == "resource-lookup" and h["file"] == "Molfar/Core/Loader.swift"
+               for h in reach["assumptionHits"])
+    assert [c["answered"] for c in out["cues"]] == ["edit"]
+    assert "Verdict: light" in out["render"]
+
+
+def test_cli_py_triggers(tmp_path):
+    root = cp(tmp_path, "py-triggers")
+    out = cli_json(root, "--edit", "add-member:Base=extra")
+    assert out["recommended"] == "full" and out["signals"]["patternAdoptionAvailable"] is True
+    assert [t["kind"] for t in out["signals"]["triggers"]] == ["variation"]
+    out = cli_json(root, "--edit", "add-member:Widget=extra", "--backlog", root / "backlog.md")
+    assert [t["kind"] for t in out["signals"]["triggers"]] == ["backlog"] and out["recommended"] == "full"
+    out = cli_json(root, "--edit", "add-member:Solo=extra", "--futures", root / "futures.md")
+    assert [t["kind"] for t in out["signals"]["triggers"]] == ["plan"] and out["recommended"] == "full"
+    out = cli_json(root, "--edit", "add-member:Solo=extra", "--trigger", "spec:2")
+    assert [t["kind"] for t in out["signals"]["triggers"]] == ["cited-spec"]
+    assert out["inputs"]["citedTriggers"] == ["spec:2"]
+    out = cli_json(root, "--edit", "add-member:Widget=extra", "--backlog", root / "backlog.md",
+                   "--trigger", "backlog:F-god-class-abcdef")
+    assert {t["kind"] for t in out["signals"]["triggers"]} == {"backlog", "cited-backlog"}
+
+
+def test_cli_inputs_recorded_in_signals_and_sha(tmp_path):
+    root = cp(tmp_path, "f2-like")
+    out = cli_json(root, "--edit", "change-assumption:bundled@spec:2", "--rerun-reason", "spec changed",
+                   "--force", "full", "--force-phrase", "need the pattern session")
+    s = out["signals"]
+    assert s["inputs"]["rerun"] == "spec changed" and s["inputs"]["base"] == "none"
+    assert s["inputs"]["specSha256"] == hashlib.sha256((root / "spec.md").read_bytes()).hexdigest()
+    assert s["inputs"]["forced"] == {"verdict": "full", "phrase": "need the pattern session"}
+    assert out["recommended"] == "light" and "Verdict: full" in out["render"]
+    assert 'Override: forced-by-developer: "need the pattern session"' in out["render"]
+    assert out["signalsSha"] == __import__("cd_triage").signals_sha(s)
+    assert out["signalsSha"] in out["render"]
+    lines = out["render"].split("\n")
+    assert lines[0] == "## Triage" and lines[1].startswith("Verdict:") and lines[2].startswith("Override:")
+    assert lines[3] == "Reasons:" and "Signals:" in lines
+    assert cli_json(root, "--edit", "change-assumption:bundled@spec:2")["signals"]["inputs"]["rerun"] is None
+
+
+def test_cli_no_edits_is_skip_with_cues(tmp_path):
+    root = cp(tmp_path, "f1-like")
+    out = cli_json(root)
+    assert out["recommended"] == "skip" and out["signals"]["inputs"]["edits"] == []
+    assert len(out["cues"]) == 1
+
+
+def test_cli_rejections(tmp_path):
+    root = cp(tmp_path, "f1-like")
+    for flag in ("--modify", "--additive"):
+        r = cli(root, flag, "Place")
+        assert r.returncode == 2 and "--edit" in r.stderr
+    assert cli(root, "--edit", "add-member:Plac3=abcd").returncode == 2            # typo target
+    assert cli(root, "--edit", "add-member:AppState=load").returncode == 2         # =NEW exists in owner
+    assert cli(root, "--edit", "change-contract:AppState.load@spec:99").returncode == 2
+    assert cli(root, "--edit", "bogus:AppState").returncode == 2
+    assert cli(root, "--dismiss", "2:not a change: x").returncode == 2             # not a cue line
+    assert cli(root, "--dismiss", "3:todo").returncode == 2
+    assert cli(root, "--trigger", "spec:99").returncode == 2
+    assert cli(root, "--new-path", "../x").returncode == 2
+    assert cli(root, "--new-path", "/etc/x").returncode == 2
+    assert cli(root, "--new-path", "Sources/Place.swift").returncode == 2          # existing file
+    r = cli(root, "--force", "skip")
+    assert r.returncode == 2
+    outside = tmp_path / "outside.md"
+    outside.write_text("- x\n")
+    r = run_py(SCRIPT, "--root", root, "--model", root / "model.json", "--spec", outside)
+    assert r.returncode == 2
+    link = root / "esc"
+    os.symlink(tmp_path, link)
+    assert cli(root, "--new-path", "esc/x.swift").returncode == 2
+
+
+def _git(root, *args):
+    subprocess.run(["git", "-C", str(root), "-c", "user.email=t@t", "-c", "user.name=t", *args],
+                   check=True, capture_output=True)
+
+
+def test_cli_base_sha_and_dirty_tree(tmp_path):
+    root = cp(tmp_path, "f1-like")
+    _git(root, "init", "-q")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", "base")
+    sha = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    assert cli_json(root)["inputs"]["base"] == sha
+    (root / "Sources" / "Place.swift").write_text("struct Place {}\n", encoding="utf-8")
+    r = cli(root)
+    assert r.returncode == 2
+    assert "commit or stash tracked source changes before triage" in r.stderr
+
+
+def test_cli_deterministic_and_no_writes(tmp_path):
+    root = cp(tmp_path, "f1-like")
+    before = sorted(str(p) for p in root.rglob("*"))
+    a = cli(root, *F1_FLAGS).stdout
+    b = cli(root, *F1_FLAGS).stdout
+    assert a == b and a
+    assert sorted(str(p) for p in root.rglob("*")) == before
+
+
+def test_cli_audit_dispatch(tmp_path):
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / "a.py").write_text("x = 1\n", encoding="utf-8")
+    _git(root, "init", "-q")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", "base")
+    doc = root / "doc.md"
+    doc.write_text("# Design\n\n## Triage\nVerdict: skip\nOverride: none\nReasons:\n- r\nSignals:\n```json\n"
+                   + json.dumps({"schema": 2, "inputs": {"edits": [], "newPaths": [], "base": "none"}})
+                   + "\n```\n", encoding="utf-8")
+    r = run_py(SCRIPT, "audit", "--root", root, "--doc", doc)
+    assert r.returncode == 0, r.stderr
+    assert "mismatches" in json.loads(r.stdout)
