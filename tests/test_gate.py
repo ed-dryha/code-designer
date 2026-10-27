@@ -238,3 +238,73 @@ def test_plans_used_excluded_stale(script, repo_root, repo):
     r = _gate_fp(script, repo_root, repo, FIX / "good-plans-used.md", FUTURES, "--exclude-plan", CONFIRMED)
     assert "plan-excluded-stale" in _statuses(r)
     assert any(x["check"] == "used-plan" and x["status"] == "plan-excluded-stale" for x in json.loads(r.stdout))
+
+
+# ---- triage verdicts (TRIA-02) ----
+
+def _no_blast_or_records(r):
+    st = _statuses(r)
+    return "no-records" not in st and "blast-missing-section" not in st
+
+
+def test_triage_skip_stub_passes_without_records(script, repo_root, repo):
+    r = _gate(script, repo_root, repo, FIX / "good-skip-stub.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert _no_blast_or_records(r)
+    assert "checks pass" in r.stderr
+
+
+def test_triage_skip_forced_override_passes(script, repo_root, repo):
+    r = _gate(script, repo_root, repo, FIX / "good-skip-forced.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+@pytest.mark.parametrize("doc,status", [
+    ("bad-skip-no-reasons.md", "triage-no-reasons"),
+    ("bad-skip-tampered.md", "triage-signals-tampered"),
+    ("bad-skip-contradicts.md", "skip-contradicts-signals"),
+    ("bad-skip-bad-json.md", "triage-bad-signals"),
+    ("bad-verdict-value.md", "triage-bad-verdict"),
+    ("bad-override.md", "triage-bad-override"),
+    ("bad-light-3-records.md", "light-too-many-records"),
+    ("bad-light-contradicts.md", "verdict-contradicts-signals"),
+])
+def test_triage_bad_docs_fail_with_status(script, repo_root, repo, doc, status):
+    r = _gate(script, repo_root, repo, FIX / doc)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert status in _statuses(r)
+
+
+def test_triage_good_light_passes(script, repo_root, repo):
+    r = _gate(script, repo_root, repo, FIX / "good-light.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_triage_good_full_checked_as_before(script, repo_root, repo):
+    r = _gate(script, repo_root, repo, FIX / "good-full-triage.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_triage_full_zero_records_still_fails(script, repo_root, repo):
+    r = _gate(script, repo_root, repo, FIX / "bad-full-no-records.md")
+    assert r.returncode == 1
+    assert "no-records" in _statuses(r)
+
+
+def test_triage_absent_unchanged_without_flag(script, repo_root, repo):
+    r = _gate(script, repo_root, repo, FIX / "good-no-pattern.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "triage-missing" not in _statuses(r)
+
+
+def test_triage_require_flag_fails_when_missing(script, repo_root, repo):
+    r = run_py(script, FIX / "good-no-pattern.md", "--root", repo, "--model", FIX / "model.json",
+               "--kb", repo_root / "src" / "knowledge", "--require-triage")
+    assert r.returncode == 1
+    assert "triage-missing" in _statuses(r)
+
+
+def test_triage_require_flag_passes_with_section(script, repo_root, repo):
+    r = run_py(script, FIX / "good-skip-stub.md", "--root", repo, "--model", FIX / "model.json",
+               "--kb", repo_root / "src" / "knowledge", "--require-triage")
+    assert r.returncode == 0, r.stdout + r.stderr
