@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import yaml  # noqa: E402
 
 import cd_common  # noqa: E402
+import cd_edits  # noqa: E402
 import cd_triage  # noqa: E402
 import cd_verify  # noqa: E402
 
@@ -275,10 +276,7 @@ def resolve_spec(text, root, flag):
             body = fh.read().decode("utf-8", errors="replace")
     except OSError:
         return None, None
-    ls = body.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    if ls and ls[-1] == "":
-        ls.pop()
-    return ls, None
+    return cd_edits.spec_lines(body), None
 
 
 def gate_spec_coverage(text, spec_lines, record_ids, spec_error=None):

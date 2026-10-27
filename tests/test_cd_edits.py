@@ -10,6 +10,9 @@ import cd_gate
 from cd_edits import EditError
 
 
+HAS_LINK = []
+
+
 def git(root, *a):
     return subprocess.run(
         ["git", "-C", str(root), "-c", "user.email=t@t", "-c", "user.name=t", *a],
@@ -31,7 +34,7 @@ def repo(tmp_path):
         has_link = False
     git(r, "add", "-A")
     git(r, "commit", "-q", "-m", "init")
-    r.has_link = has_link
+    HAS_LINK.append(has_link)
     return r
 
 
@@ -240,7 +243,7 @@ def test_extract_base(repo, tmp_path):
     cd_edits.extract_base(repo, sha, dest)
     assert (dest / "a.txt").read_text() == "hello\n"
     assert (dest / "src" / "m.py").read_text() == "x = 1\n"
-    if repo.has_link:
+    if HAS_LINK and HAS_LINK[-1]:
         assert not os.path.lexists(dest / "link")
 
 
