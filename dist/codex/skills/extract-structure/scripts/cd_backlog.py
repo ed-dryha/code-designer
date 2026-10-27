@@ -253,13 +253,9 @@ def cmd_lint(a):
     return 1 if probs else 0
 
 
-def cmd_touching(a):
-    try:
-        docs = load(a.backlog)
-    except (OSError, yaml.YAMLError) as ex:
-        print(f"error: {ex}", file=sys.stderr)
-        return 2
-    syms, files = set(a.symbols or []), set(a.files or [])
+def touching(docs, syms, files):
+    """Open findings whose symbol is in syms or whose evidence/symbol file is in files."""
+    syms, files = set(syms or []), set(files or [])
     out = []
     for d in docs[1:]:
         if not isinstance(d, dict) or d.get("status") != "open":
@@ -268,7 +264,16 @@ def cmd_touching(a):
         if d.get("symbol") in syms or files & (set(efiles) | {_file_of(d.get("symbol"))}):
             out.append({"id": d["id"], "symbol": d.get("symbol"), "priority": d.get("priority"),
                         "rationale": d.get("rationale"), "files": efiles})
-    print(json.dumps(out, indent=2))
+    return out
+
+
+def cmd_touching(a):
+    try:
+        docs = load(a.backlog)
+    except (OSError, yaml.YAMLError) as ex:
+        print(f"error: {ex}", file=sys.stderr)
+        return 2
+    print(json.dumps(touching(docs, a.symbols, a.files), indent=2))
     return 0
 
 
