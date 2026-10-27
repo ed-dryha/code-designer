@@ -308,3 +308,123 @@ def test_triage_require_flag_passes_with_section(script, repo_root, repo):
     r = run_py(script, FIX / "good-skip-stub.md", "--root", repo, "--model", FIX / "model.json",
                "--kb", repo_root / "src" / "knowledge", "--require-triage")
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+# --- Availability and Spec Coverage (05-04) ---
+
+SPEC = FIX / "spec.md"
+
+
+@pytest.fixture()
+def repo_spec(repo):
+    shutil.copy(SPEC, repo / "spec.md")
+    return repo
+
+
+def _rows(r):
+    return json.loads(r.stdout)
+
+
+def test_availability_good_passes(script, repo_root, repo_spec):
+    r = _gate(script, repo_root, repo_spec, FIX / "good-availability.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+@pytest.mark.parametrize("doc,status", [
+    ("bad-availability-missing-row.md", "availability-missing-row"),
+    ("bad-availability-no-section.md", "availability-missing-section"),
+    ("bad-availability-empty.md", "availability-empty"),
+])
+def test_availability_bad_docs_fail(script, repo_root, repo_spec, doc, status):
+    r = _gate(script, repo_root, repo_spec, FIX / doc)
+    assert r.returncode == 1
+    assert status in _statuses(r)
+
+
+def test_availability_missing_row_names_field(script, repo_root, repo_spec):
+    r = _gate(script, repo_root, repo_spec, FIX / "bad-availability-missing-row.md")
+    bad = [x for x in _rows(r) if x["status"] == "availability-missing-row"]
+    assert "regionCoverage" in bad[0]["detail"]
+
+
+@pytest.mark.parametrize("doc", ["good-availability-class-only.md", "good-availability-modified.md"])
+def test_availability_not_required(script, repo_root, repo_spec, doc):
+    r = _gate(script, repo_root, repo_spec, FIX / doc)
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_availability_no_chosen_design_unaffected(script, repo_root, repo):
+    r = _gate(script, repo_root, repo, FIX / "good-no-pattern.md")
+    assert r.returncode == 0
+    assert not [s for s in _statuses(r) if s.startswith("availability")]
+
+
+def test_spec_coverage_good_passes(script, repo_root, repo_spec):
+    r = _gate(script, repo_root, repo_spec, FIX / "good-spec-coverage.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_spec_coverage_via_spec_flag(script, repo_root, repo):
+    shutil.copy(SPEC, repo / "other-spec.md")
+    text = (FIX / "good-spec-coverage.md").read_text().replace("Spec: spec.md", "Spec: none")
+    doc = repo / "doc.md"
+    doc.write_text(text)
+    r = run_py(script, doc, "--root", repo, "--model", FIX / "model.json",
+               "--kb", repo_root / "src" / "knowledge", "--spec", "other-spec.md")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+@pytest.mark.parametrize("doc,status", [
+    ("bad-coverage-line-range.md", "coverage-bad-line"),
+    ("bad-coverage-blank-line.md", "coverage-bad-line"),
+    ("bad-coverage-unknown-dr.md", "coverage-unknown-dr"),
+    ("bad-coverage-unmapped.md", "coverage-unmapped"),
+    ("bad-coverage-no-reason.md", "coverage-no-reason"),
+    ("bad-coverage-quote.md", "coverage-quote-mismatch"),
+    ("bad-coverage-no-section.md", "coverage-missing-section"),
+])
+def test_spec_coverage_bad_docs_fail(script, repo_root, repo_spec, doc, status):
+    r = _gate(script, repo_root, repo_spec, FIX / doc)
+    assert r.returncode == 1
+    assert status in _statuses(r)
+
+
+def test_spec_coverage_unlisted_lines_do_not_fail(script, repo_root, repo_spec):
+    r = _gate(script, repo_root, repo_spec, FIX / "good-spec-coverage.md")
+    assert r.returncode == 0  # lines 7-12 of the spec are not listed
+
+
+@pytest.mark.parametrize("doc", ["good-coverage-spec-none.md", "good-coverage-spec-missing.md"])
+def test_spec_coverage_skipped_without_spec(script, repo_root, repo_spec, doc):
+    r = _gate(script, repo_root, repo_spec, FIX / doc)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert not [s for s in _statuses(r) if s.startswith("coverage")]
+
+
+def test_spec_coverage_dotdot_path_rejected(script, repo_root, repo_spec):
+    r = _gate(script, repo_root, repo_spec, FIX / "bad-coverage-path-escape.md")
+    assert r.returncode == 1
+    bad = [x for x in _rows(r) if x["status"] == "coverage-bad-line"]
+    assert bad and bad[0]["detail"] == "path-escape"
+
+
+def test_spec_coverage_symlink_escape_rejected(script, repo_root, repo, tmp_path):
+    outside = tmp_path / "outside.md"
+    outside.write_text(SPEC.read_text())
+    (repo / "spec.md").symlink_to(outside)
+    r = _gate(script, repo_root, repo, FIX / "good-spec-coverage.md")
+    assert r.returncode == 1
+    bad = [x for x in _rows(r) if x["status"] == "coverage-bad-line"]
+    assert bad and bad[0]["detail"] == "path-escape"
+
+
+def test_spec_coverage_skip_stub_exempt(script, repo_root, repo_spec):
+    r = _gate(script, repo_root, repo_spec, FIX / "good-skip-stub.md")
+    assert r.returncode == 0
+    assert not [s for s in _statuses(r) if s.startswith("coverage")]
+
+
+def test_spec_coverage_quote_normalizes_whitespace(script, repo_root, repo_spec):
+    # fixture row quotes "quick  brown fox" (double space) against "quick brown fox"
+    r = _gate(script, repo_root, repo_spec, FIX / "good-spec-coverage.md")
+    assert "coverage-quote-mismatch" not in _statuses(r)
