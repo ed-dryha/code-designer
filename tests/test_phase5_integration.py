@@ -118,3 +118,11 @@ def test_readme_names_phase5_features(repo_root):
     for needle in ("triage", "skip", "light", "full", "checklist", "availability", "spec coverage",
                    "swift", "phase 4"):
         assert needle in text, needle
+
+
+def test_removed_flags_rejected_with_edit_hint(tree, tmp_path):
+    name, base = tree
+    root = _copy(tmp_path, "s0-additive")
+    r = run_py(base / TREES[name] / "cd_triage.py", "--root", root, "--model", root / "model.json",
+               "--spec", root / "spec.md", "--modify", "Kind")
+    assert r.returncode == 2 and "--edit" in r.stderr
