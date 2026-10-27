@@ -12,17 +12,22 @@ Exit codes: 0 all pass, 1 any fail, 2 usage/IO. Prints a JSON array of
 {record, check, status[, detail]} to stdout and "N/M checks pass" to stderr.
 """
 import argparse
+import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import yaml  # noqa: E402
 
 import cd_common  # noqa: E402
+import cd_backlog  # noqa: E402
 import cd_edits  # noqa: E402
+import cd_futures  # noqa: E402
 import cd_triage  # noqa: E402
 import cd_verify  # noqa: E402
 
@@ -86,10 +91,12 @@ TRIAGE_H = re.compile(r"^##\s+Triage\s*$")
 TRIAGE_ORDER = {"skip": 0, "light": 1, "full": 2}
 OVERRIDE_FORCED = re.compile(r'^forced-by-developer:\s*"([^"]+)"\s*$')
 MAX_LIGHT_RECORDS = 2
+MAX_LIGHT_RECORDS_V2 = 0
+SUBPROCESS_TIMEOUT = 300
 
 
-def gate_triage(text, require):
-    """Check the optional ## Triage section. Returns (results, verdict or None)."""
+def _gate_triage_v1(text, require):
+    """Check the optional ## Triage section (schema 1). Returns (results, verdict or None)."""
     res = []
 
     def add(check, status, **extra):
@@ -170,6 +177,238 @@ def gate_triage(text, require):
     return res, verdict
 
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _git_out(root, *args):
+    try:
+        r = subprocess.run(["git", "-C", root, *args], capture_output=True, text=True,
+                           timeout=SUBPROCESS_TIMEOUT)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return r.stdout if r.returncode == 0 else None
+
+
+def _base_or_tree(path, root, base_root):
+    """Prefer the file as tracked at the base archive, else the working tree copy."""
+    if not path:
+        return None
+    full = os.path.realpath(path)
+    if base_root and (full == root or full.startswith(root + os.sep)):
+        cand = os.path.join(base_root, os.path.relpath(full, root))
+        if os.path.isfile(cand):
+            return cand
+    return full if os.path.isfile(full) else None
+
+
+def _norm_json(v):
+    return json.dumps(v, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def _signal_diff(rec, new):
+    keys = []
+    for k in sorted(set(rec) | set(new)):
+        if k == "signalsSha":
+            continue
+        if k == "inputs" and isinstance(rec.get(k), dict) and isinstance(new.get(k), dict):
+            for ik in sorted(set(rec[k]) | set(new[k])):
+                if _norm_json(rec[k].get(ik)) != _norm_json(new[k].get(ik)):
+                    keys.append("inputs." + ik)
+        elif _norm_json(rec.get(k)) != _norm_json(new.get(k)):
+            keys.append(k)
+    return keys
+
+
+def gate_triage(text, require, ctx=None):
+    """Dispatch on the Triage signals schema: 2 -> recompute at the base commit, else the 0.2.0 rule."""
+    ctx = ctx if ctx is not None else {}
+    _v, signals = cd_edits.parse_triage_section(text)
+    if isinstance(signals, dict) and signals.get("schema") == 2:
+        return _gate_triage_v2(text, ctx, signals)
+    return _gate_triage_v1(text, require)
+
+
+def _gate_triage_v2(text, ctx, signals):
+    """Schema-2 triage: recompute signals at the recorded base commit and bind the verdict both ways."""
+    res = []
+
+    def add(check, status, **extra):
+        res.append({"record": "triage", "check": check, "status": status, **extra})
+
+    ctx["schema"] = 2
+    root = ctx["root"]
+    body = [t for _n, t in (_section(text.split("\n"), TRIAGE_H) or [])]
+    verdict = override = None
+    for t in body:
+        if t.startswith("Verdict:") and verdict is None:
+            verdict = t[len("Verdict:"):].strip()
+        elif t.startswith("Override:") and override is None:
+            override = t[len("Override:"):].strip()
+    if verdict not in TRIAGE_ORDER:
+        add("verdict", "triage-bad-verdict", detail=verdict)
+        verdict = None
+    else:
+        add("verdict", "pass")
+    forced_phrase = None
+    if override == "none":
+        add("override", "pass")
+    else:
+        m = OVERRIDE_FORCED.match(override or "")
+        if m:
+            forced_phrase = m.group(1)
+            add("override", "pass")
+        else:
+            add("override", "triage-bad-override", detail=override)
+
+    if signals.get("signalsSha") != cd_triage.signals_sha(signals):
+        add("signals", "triage-signals-tampered")
+        return res, verdict
+    add("signals", "pass")
+    ctx["availability_required"] = [
+        (None, d["name"]) for d in signals.get("availabilityRequired") or []
+        if isinstance(d, dict) and isinstance(d.get("name"), str) and d["name"].strip()]
+    inputs = signals.get("inputs")
+    if not isinstance(inputs, dict):
+        add("signals", "triage-bad-signals", detail="signals.inputs missing")
+        return res, verdict
+
+    # developer force: needs the recorded phrase in the Override line and in signals
+    forced = inputs.get("forced")
+    forced_ok = False
+    if forced is None:
+        if forced_phrase is not None:
+            add("forced", "triage-verdict-mismatch", detail="Override line forces a verdict but signals record no force")
+    elif (isinstance(forced, dict) and isinstance(forced.get("phrase"), str) and forced["phrase"].strip()
+          and forced.get("verdict") in TRIAGE_ORDER):
+        if forced_phrase == forced["phrase"] and verdict == forced["verdict"]:
+            forced_ok = True
+            add("forced", "pass")
+        else:
+            add("forced", "triage-verdict-mismatch",
+                detail="signals record a force of %s but Override/Verdict do not match it" % forced["verdict"])
+    else:
+        add("forced", "triage-bad-signals", detail="inputs.forced malformed")
+        return res, verdict
+
+    # base commit
+    base = inputs.get("base")
+    base_root = None
+    if base == "none":
+        add("base", "pass", detail="base none: recomputed against the working tree")
+    elif not cd_edits.valid_sha(base):
+        add("base", "triage-base-unavailable", detail="base is not a 40-hex commit")
+        return res, verdict
+    else:
+        dest = os.path.join(ctx["tmp"], "base")
+        try:
+            os.makedirs(dest, exist_ok=True)
+            cd_edits.extract_base(root, base, dest)
+        except (cd_edits.EditError, OSError, subprocess.SubprocessError) as ex:
+            add("base", "triage-base-unavailable", detail=str(ex)[:200])
+            return res, verdict
+        base_root = os.path.realpath(dest)
+        add("base", "pass")
+
+    # spec
+    spec_path = ctx.get("spec_path")
+    if not spec_path:
+        add("spec", "triage-spec-missing", detail="schema-2 triage needs the spec to run Spec Coverage")
+        return res, verdict
+    try:
+        with open(spec_path, "rb") as fh:
+            raw = fh.read(cd_common.MAX_BYTES + 1)
+    except OSError as ex:
+        add("spec", "triage-spec-missing", detail=str(ex)[:120])
+        return res, verdict
+    spec_sha = hashlib.sha256(raw).hexdigest()
+    if inputs.get("specSha256") != spec_sha:
+        add("spec", "triage-spec-changed", detail="recorded %s, current %s" % (inputs.get("specSha256"), spec_sha))
+        return res, verdict
+    add("spec", "pass")
+
+    # model at the base commit (never the gate's --model: it describes the working tree, D-14)
+    if base_root:
+        mpath = os.path.join(ctx["tmp"], "base-model.json")
+        cmd = [sys.executable, os.path.join(HERE, "cd_extract.py"), base_root, "--out", mpath]
+        if ctx.get("cache_dir"):
+            cmd += ["--cache-dir", ctx["cache_dir"]]
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=SUBPROCESS_TIMEOUT)
+            if r.returncode not in (0, 3):
+                raise ValueError("extractor exit %d: %s" % (r.returncode, r.stderr.strip()[-160:]))
+            with open(mpath, encoding="utf-8") as fh:
+                model = json.load(fh)
+            base_symbols = {x["id"]: x for x in model["symbols"]}
+        except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as ex:
+            add("base-model", "triage-base-unavailable", detail="could not extract the model at base: %s" % str(ex)[:200])
+            return res, verdict
+        ctx["base_root"], ctx["base_symbols"] = base_root, base_symbols
+        rroot = base_root
+    else:
+        model, rroot = ctx["model"], root
+
+    try:
+        bl_file = _base_or_tree(ctx.get("backlog_path"), root, base_root)
+        backlog_docs = cd_backlog.load(bl_file) if bl_file else None
+        fu_file = _base_or_tree(ctx.get("futures_path"), root, base_root)
+        plan_docs = cd_futures.load(fu_file) if fu_file else None
+        lines = cd_edits.spec_lines(raw.decode("utf-8", errors="replace"))
+        _i, new = cd_triage.collect2(
+            model, rroot, inputs.get("edits"), inputs.get("newPaths"), backlog_docs, plan_docs, lines,
+            inputs.get("dismissals"), inputs.get("citedTriggers"), base, inputs.get("rerun"), spec_sha, forced)
+        new["inputs"]["spec"] = os.path.relpath(spec_path, root).replace(os.sep, "/")
+        new = json.loads(json.dumps(new))
+    except Exception as ex:  # noqa: BLE001 - fail closed: any recompute failure is a gate failure
+        add("recompute", "triage-signals-mismatch", detail="recompute failed: %s" % str(ex)[:200])
+        return res, verdict
+
+    diff = _signal_diff(signals, new)
+    if diff:
+        detail = "differs: " + ", ".join(diff)
+        if "modelSchema" in diff:
+            detail += " (modelSchema recorded %s, recomputed %s)" % (
+                _norm_json(signals.get("modelSchema")), _norm_json(new.get("modelSchema")))
+        add("signals-recompute", "triage-signals-mismatch", detail=detail)
+    else:
+        add("signals-recompute", "pass")
+
+    _unc, script_verdict, _r = cd_triage.decide2(new)
+    if signals.get("verdictUncapped") != new["verdictUncapped"]:
+        add("verdict-uncapped", "triage-verdict-mismatch",
+            detail="recorded uncapped %s, recomputed %s" % (signals.get("verdictUncapped"), new["verdictUncapped"]))
+    expect = forced["verdict"] if forced_ok else script_verdict
+    if verdict is not None:
+        if verdict == expect:
+            add("verdict-binding", "pass")
+        else:
+            add("verdict-binding", "triage-verdict-mismatch",
+                detail="Verdict %s, recomputed %s%s" % (
+                    verdict, script_verdict,
+                    "; cap bypass needs a recorded force" if new["verdictUncapped"] == "full" and script_verdict == "light" and verdict == "full" else ""))
+
+    for c in cd_edits.unanswered_cues(new.get("cues") or [], [cd_edits.parse_edit(t) for t in new["inputs"]["edits"]],
+                                      new["inputs"]["dismissals"]):
+        add("cue", "triage-cue-unanswered", line=c["line"], detail="%s: %s" % (c["phrase"], c["text"]))
+
+    if verdict == "light":
+        n = sum(1 for ln in text.split("\n") if HEADING.match(ln))
+        add("light-records", "pass" if n <= MAX_LIGHT_RECORDS_V2 else "triage-light-too-many-records",
+            **({} if n <= MAX_LIGHT_RECORDS_V2 else {"detail": "%d records (max %d)" % (n, MAX_LIGHT_RECORDS_V2)}))
+
+    if base_root:
+        head = cd_edits.head_sha(root)
+        if head and head != base:
+            cnt = (_git_out(root, "rev-list", "--count", base + "..HEAD") or "?").strip()
+            changed = (_git_out(root, "diff", "--name-only", base) or "").split()
+            dirty = cd_edits.tracked_dirty(root)
+            add("tree-vs-base", "pass",
+                detail="working tree is %s commit(s)%s past %s; %d tracked file(s) differ from base"
+                       % (cnt, " / dirty" if dirty else "", base[:10], len(changed)))
+        elif head and cd_edits.tracked_dirty(root):
+            add("tree-vs-base", "pass", detail="working tree is dirty past %s" % base[:10])
+    return res, verdict
+
+
 CHOSEN_H = re.compile(r"^##\s+Chosen Design\s*$")
 AVAIL_H = re.compile(r"^##\s+Availability\s*$")
 COVER_H = re.compile(r"^##\s+Spec Coverage\s*$")
@@ -203,22 +442,29 @@ def _placeholder(cell):
     return cell.strip().strip("`").strip().lower() in PLACEHOLDERS
 
 
-def gate_availability(text):
-    """Added fields/properties/dependencies need an ## Availability row (D-08)."""
+def _avail_names(ctx):
+    """Names the recorded schema-2 signals say need an Availability row (availabilityRequired)."""
+    return list(ctx.get("availability_required") or [])
+
+
+def gate_availability(text, extra_names=()):
+    """Added fields/properties/dependencies need an ## Availability row (D-08).
+
+    extra_names: further (line|None, name) needs from schema-2 signals.availabilityRequired."""
     res = []
     lines = text.split("\n")
+    need = list(extra_names)
     tab = _table(_section(lines, CHOSEN_H))
-    if tab is None:
-        return res
-    head = [h.lower() for h in tab[0]]
-    try:
-        ik, inm, ich = head.index("kind"), head.index("name"), head.index("change")
-    except ValueError:
-        return res
-    need = []
-    for n, c in tab[1]:
-        if len(c) > max(ik, inm, ich) and c[ik].lower() in AVAIL_KINDS and c[ich].lower().startswith("added"):
-            need.append((n, c[inm]))
+    if tab is not None:
+        head = [h.lower() for h in tab[0]]
+        try:
+            ik, inm, ich = head.index("kind"), head.index("name"), head.index("change")
+        except ValueError:
+            ik = None
+        if ik is not None:
+            for n, c in tab[1]:
+                if len(c) > max(ik, inm, ich) and c[ik].lower() in AVAIL_KINDS and c[ich].lower().startswith("added"):
+                    need.append((n, c[inm]))
     if not need:
         return res
 
@@ -242,17 +488,18 @@ def gate_availability(text):
         key = name.strip("` ").lower()
         match = [r for r in arows if key and (key in r[0].strip("` ").lower() or r[0].strip("` ").lower() in key)
                  and r[0].strip("` ")]
+        ln = {} if n is None else {"line": n}
         if not match:
-            add("availability-row", "availability-missing-row", line=n, detail=name)
+            add("availability-row", "availability-missing-row", detail=name, **ln)
         elif any(_placeholder(r[1]) or _placeholder(r[2]) for r in match[:1]):
-            add("availability-row", "availability-empty", line=n, detail=name)
+            add("availability-row", "availability-empty", detail=name, **ln)
         else:
-            add("availability-row", "pass", line=n)
+            add("availability-row", "pass", **ln)
     return res
 
 
-def resolve_spec(text, root, flag):
-    """Return (lines|None, error|None). None/None means the rule is skipped."""
+def _spec_file(text, root, flag):
+    """Return (full path|None, error|None) of the spec named by the flag or the doc's Spec: header."""
     raw = flag
     if raw is None:
         for ln in text.split("\n"):
@@ -269,6 +516,14 @@ def resolve_spec(text, root, flag):
         return None, "path-escape"
     if not os.path.isfile(full):
         return None, None
+    return full, None
+
+
+def resolve_spec(text, root, flag):
+    """Return (lines|None, error|None). None/None means the rule is skipped."""
+    full, err = _spec_file(text, root, flag)
+    if full is None:
+        return None, err
     try:
         if os.path.getsize(full) > MAX_DOC_BYTES:
             return None, "spec-too-large"
@@ -582,6 +837,7 @@ def main(argv=None):
     ap.add_argument("--exclude-plan", action="append", default=[], dest="exclude_plan")
     ap.add_argument("--require-triage", action="store_true", dest="require_triage")
     ap.add_argument("--spec")
+    ap.add_argument("--cache-dir", dest="cache_dir")
     ap.add_argument("--tolerance", type=int, default=0)
     args = ap.parse_args(sys.argv[1:] if argv is None else argv)
     root = os.path.realpath(args.root)
@@ -592,7 +848,8 @@ def main(argv=None):
         with open(args.doc, encoding="utf-8") as fh:
             text = fh.read()
         with open(args.model, encoding="utf-8") as fh:
-            symbols = {x["id"]: x for x in json.load(fh)["symbols"]}
+            model = json.load(fh)
+        symbols = {x["id"]: x for x in model["symbols"]}
     except (OSError, ValueError, KeyError, TypeError) as ex:
         print(f"error: {ex}", file=sys.stderr)
         return 2
@@ -602,19 +859,35 @@ def main(argv=None):
     if any(not PLAN_ARG.match(x) for x in args.exclude_plan):
         print("error: --exclude-plan needs a plan id (P-...-hex)", file=sys.stderr)
         return 2
+    with tempfile.TemporaryDirectory(prefix="cd-gate-") as tmp:
+        spec_path, _spec_err = _spec_file(text, root, args.spec)
+        ctx = {"root": root, "model": model, "tmp": os.path.realpath(tmp), "spec_path": spec_path,
+               "cache_dir": args.cache_dir,
+               "backlog_path": args.backlog or os.path.join(root, "docs", "design", "backlog.md"),
+               "futures_path": args.futures or os.path.join(root, "docs", "design", "future-plans.md")}
+        return _run(args, root, text, symbols, ctx)
+
+
+def _run(args, root, text, symbols, ctx):
     excluded = frozenset(args.exclude_plan)
     kb = load_kb(args.kb)
-    bl_path = args.backlog or os.path.join(root, "docs", "design", "backlog.md")
-    backlog = load_backlog(bl_path)
-    plans = load_plans(args.futures or os.path.join(root, "docs", "design", "future-plans.md"))
+    backlog = load_backlog(ctx["backlog_path"])
+    plans = load_plans(ctx["futures_path"])
 
-    results, tverdict = gate_triage(text, args.require_triage)
-    if tverdict == "skip" and all(r["status"] == "pass" for r in results):
+    results, tverdict = gate_triage(text, args.require_triage, ctx)
+    v2 = ctx.get("schema") == 2
+    if tverdict == "skip" and not v2 and all(r["status"] == "pass" for r in results):
         print(json.dumps(results, indent=2))
         print(f"{len(results)}/{len(results)} checks pass", file=sys.stderr)
         return 0
+    # schema 2: citations resolve against the base commit triage saw (D-14)
+    croot = ctx.get("base_root") or root
+    csyms = ctx.get("base_symbols") or symbols
     records = extract_records(text)
-    if not records:
+    skip2 = v2 and tverdict == "skip"
+    if skip2:
+        records = []
+    elif not records and not (v2 and tverdict == "light"):
         results.append({"record": None, "check": "records", "status": "no-records"})
     for hid, block in records:
         if block is None:
@@ -633,12 +906,13 @@ def main(argv=None):
             results.append({"record": hid, "check": "yaml", "status": "yaml-error", "line": start,
                             "detail": "record is not a mapping"})
             continue
-        results.extend(gate_record(rec.get("id", hid), rec, root, symbols, kb, args.tolerance, backlog, plans, excluded))
+        results.extend(gate_record(rec.get("id", hid), rec, croot, csyms, kb, args.tolerance, backlog, plans, excluded))
 
-    results.extend(gate_blast(text, root, args.tolerance))
-    results.extend(gate_touched(text, backlog))
-    results.extend(gate_plans_used(text, plans, excluded))
-    results.extend(gate_availability(text))
+    if not skip2:
+        results.extend(gate_blast(text, croot, args.tolerance))
+        results.extend(gate_touched(text, backlog))
+        results.extend(gate_plans_used(text, plans, excluded))
+    results.extend(gate_availability(text, _avail_names(ctx)))
     spec_lines, spec_err = resolve_spec(text, root, args.spec)
     results.extend(gate_spec_coverage(text, spec_lines, {h for h, _b in records}, spec_err))
 
