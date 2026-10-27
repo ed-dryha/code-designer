@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "symbols": [],
+  "coverage": {
+    "files": [],
+    "unavailable": [
+      {
+        "language": "swift",
+        "files": ["Sources/Kind.swift", "Sources/Describe.swift"],
+        "reason": "no-grammar"
+      }
+    ]
+  }
+}
