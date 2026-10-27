@@ -131,10 +131,25 @@ def test_skill_has_triage_step(repo_root):
     import re
     text = _skill(repo_root)
     for needle in ("cd_triage.py", "skip", "light", "full", "--force", "--require-triage",
-                   "--spec", "--name", "at most 2", "data"):
+                   "--spec", "--name", "--edit", "TRIAGE.md", "data"):
         assert needle in text, needle
     assert re.search(r"^0\. ", text, re.M)
     assert re.search(r"quoted text|cited quotes", text)
+    assert "at most 2" not in text
+    assert "--modify" not in text and "--additive" not in text
+
+
+def test_triage_md_content(repo_root):
+    import re
+    text = (repo_root / "src" / "skills" / "design" / "TRIAGE.md").read_text(encoding="utf-8")
+    for needle in ("--edit", "@spec:N", "not a change:", "--dismiss", "--rerun-reason",
+                   "pattern adoption is unavailable", "no decision records", "data",
+                   "add-member", "add-case", "add-param", "add-variant", "body-new-inputs",
+                   "change-contract", "change-assumption"):
+        assert needle in text, needle
+    toks = set(re.findall(r"\{\{(.*?)\}\}", text))
+    assert toks <= {"PLUGIN_ROOT", "SCRIPTS", "KNOWLEDGE", "CACHE_DIR", "HOST"}
+    assert "{{#" not in text
 
 
 def test_skill_description_unchanged_and_size(repo_root):
