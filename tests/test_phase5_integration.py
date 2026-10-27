@@ -65,7 +65,8 @@ def test_skip_flow_triage_stub_gate(tree, tmp_path):
     doc.write_text(
         "# Design: add point kind\n\nFeature: add point kind\nDate: 2026-10-27\nSpec: spec.md\n"
         "Model generatedAt: 2026-10-27\nCoverage: partial; unavailable languages: swift\n"
-        "Triage: see below\n\n" + out["render"] + "\n## Handoff\n\nSkip stub; no design records.\n",
+        "Triage: see below\n\n" + out["render"] + "\n## Spec Coverage\n\n| Spec lines | Requirement | Maps to |\n|---|---|---|\n"
+        "| 1 | feature | no design change: additive only |\n\n## Handoff\n\nSkip stub; no design records.\n",
         encoding="utf-8")
     r = run_py(s / "cd_gate.py", doc, "--root", root, "--model", root / "model.json",
                "--kb", base / "knowledge", "--require-triage", "--spec", root / "spec.md")
