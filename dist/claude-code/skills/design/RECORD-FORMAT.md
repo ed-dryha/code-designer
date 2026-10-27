@@ -19,7 +19,7 @@ Override: none
 Reasons:
 - <reason from the cd_triage render>
 Signals:
-(json block with signalsSha, pasted from the cd_triage render)
+(json block with schema 2 fields, pasted from the cd_triage render)
 
 ## Context
 <what exists today, with file and symbol references>
@@ -67,11 +67,11 @@ Scope: grep over <n> model-covered files (<languages>); the model has no call/im
 
 ## Triage section
 
-Paste the `render` output of `cd_triage.py` verbatim as `## Triage`: `Verdict:` (skip, light or full), `Override:` (`none`, or `forced-by-developer: "<phrase>"` only when the developer asked), `Reasons:` bullets, and the `Signals:` json block carrying `signalsSha`. The gate recomputes the sha and the recommended verdict; it rejects a tampered block and a silent downgrade. `--require-triage` makes the section mandatory.
+Paste the `render` output of `cd_triage.py` verbatim as `## Triage`: `Verdict:` (skip, light or full), `Override:` (`none`, or `forced-by-developer: "<phrase>"` only when the developer asked), `Reasons:` bullets, and the `Signals:` json block carrying `signalsSha`. The schema-2 block carries the edit list, base commit, rerun reason, cue dismissals (`not a change: <reason>`), triggers, `availabilityRequired`, `verdictUncapped` and `verdict`. The gate recomputes the block at the recorded base commit; it rejects a tampered block and any verdict that differs from the recomputed one unless a recorded force phrase is present. `--require-triage` makes the section mandatory. Sections from 0.2.0 (signals without a schema key) are still accepted under the 0.2.0 rules.
 
 ## Skip stub
 
-When the verdict is skip, the doc is only the header lines (Feature, Date, Spec, Model generatedAt, Coverage, Triage), the `## Triage` section and `## Handoff`. No decision records, blast radius or other sections are needed and the gate accepts it. A light verdict keeps the normal sections but allows at most 2 decision records.
+When the verdict is skip, the doc is only the header lines (Feature, Date, Spec, Model generatedAt, Coverage, Triage), the `## Triage` section and `## Handoff`. No decision records, blast radius or other sections are needed and the gate accepts it. The stub also carries a `## Spec Coverage` table, and `## Availability` rows when the edits add state. A light verdict writes the blast radius, Availability rows and Spec Coverage only, with no decision records.
 
 ## Availability table
 

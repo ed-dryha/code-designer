@@ -2,6 +2,8 @@
 
 Every design doc needs two sections that show what else may break: `## Blast Radius` (dependents we can cite) and `## Unverified / Possible` (dependents we cannot be sure of). Both are checked by the gate.
 
+Under a light verdict this section is the main output. For languages without a grammar the grep checklist hits are the evidence.
+
 ## Run the helper
 
 For every changed or added-to symbol in the Chosen Design, run:

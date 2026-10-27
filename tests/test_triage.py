@@ -165,5 +165,6 @@ def test_skill_description_unchanged_and_size(repo_root):
 def test_record_format_documents_phase5_sections(repo_root):
     text = (repo_root / "src" / "skills" / "design" / "RECORD-FORMAT.md").read_text(encoding="utf-8")
     for needle in ("## Triage", "## Availability", "## Spec Coverage", "Populated when",
-                   "no design change:"):
+                   "no design change:", "not a change:", "no decision records"):
         assert needle in text, needle
+    assert "at most 2" not in text
