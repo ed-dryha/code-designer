@@ -23,7 +23,7 @@ Use `--new-path <file>` for each file that will be created.
 | add-param | existing function gains a parameter; `=NEW` names it | none |
 | body-new-inputs | a body starts reading a new case or parameter | `@<new case or parameter>`, which must equal a declared `=NEW` or appear in the spec text, else the script exits 2 |
 | change-contract | an existing signature or documented behavior changes | `@spec:N` |
-| change-assumption | the spec text says an assumption stops holding, and you can name existing code that depends on it (open the file to check); a fix to the symbol's own behavior is change-contract, and a value or threshold retune, a test-only change or a debug-only change is neither | `@spec:N` |
+| change-assumption | the spec text says something other code relies on stops being true, and you can name that code (open the file to check). Declare it on the field, accessor or value whose guarantee breaks, not on the method you edit to cause it: a field that was always cleared or fresh and can now be stale or nil is the target, and its readers are the dependents. A fix to a method's own behavior that leaves every guarantee its callers and readers rely on intact is change-contract. A value or threshold retune, a test-only change or a debug-only change is neither | `@spec:N` |
 | add-variant | a new variant of an existing variation point | `@spec:N` |
 
 Examples, F1-like:
@@ -38,6 +38,12 @@ F2-like:
 
 ```
 --edit change-assumption:bundled@spec:12
+```
+
+F3-like, a method edit that makes a field stale (declare the field, not the method):
+
+```
+--edit change-assumption:AppState.nearbyPeaks@spec:3
 ```
 
 ## Spec cues
