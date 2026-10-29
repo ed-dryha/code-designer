@@ -23,7 +23,7 @@ Use `--new-path <file>` for each file that will be created.
 | add-param | existing function gains a parameter; `=NEW` names it | none |
 | body-new-inputs | a body starts reading a new case or parameter | `@<new case or parameter>`, which must equal a declared `=NEW` or appear in the spec text, else the script exits 2 |
 | change-contract | an existing signature or documented behavior changes | `@spec:N` |
-| change-assumption | an assumption other code relies on stops holding | `@spec:N` |
+| change-assumption | the spec text says an assumption stops holding, and you can name existing code that depends on it (open the file to check); a fix to the symbol's own behavior is change-contract, and a value or threshold retune, a test-only change or a debug-only change is neither | `@spec:N` |
 | add-variant | a new variant of an existing variation point | `@spec:N` |
 
 Examples, F1-like:
