@@ -50,6 +50,17 @@ def test_resolve_member(hub):
     assert r["decl_lines"] == [("App/AppState.swift", 3)]
 
 
+def test_resolve_member_past_walk_cap_in_long_owner(tmp_path):
+    body = "".join("    var f%d: Int = 0\n" % i for i in range(600))
+    src = "final class Owner {\n" + body + "    func lateMember() {}\n}\n"
+    late = src.splitlines().index("    func lateMember() {}") + 1
+    assert late > cd_reach.MAX_WALK + 8
+    f = write(tmp_path, "Owner.swift", src)
+    r = cd_reach.resolve_target(model_for([f]), tmp_path, "Owner.lateMember")
+    assert r["decl_lines"] == [("Owner.swift", late)]
+    assert r["blocks"][0][2] >= late
+
+
 def test_resolve_bare_type_and_free_member(tmp_path):
     f1 = write(tmp_path, "a.swift", "struct Place { var name = 1 }\nfunc makeThing() {}\n")
     model = model_for([f1])

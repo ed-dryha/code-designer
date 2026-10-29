@@ -189,7 +189,7 @@ def _owner_blocks(model, root, owner, files, cache):
         for i, t in enumerate(ls):
             if len(t) <= cd_blast.MAX_LINE and rx.search(t) and (rel, i + 1) not in seen:
                 seen.add((rel, i + 1))
-                end, _ok = _block_end(ls, i, indent_lang=il)
+                end, _ok = _block_end(ls, i, cap=len(ls), indent_lang=il)
                 blocks.append((rel, i + 1, end + 1))
     return sorted(blocks)
 
