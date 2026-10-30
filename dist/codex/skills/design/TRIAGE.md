@@ -43,7 +43,7 @@ F2-like:
 F3-like, a method edit that makes a field stale (declare the field, not the method):
 
 ```
---edit change-assumption:AppState.nearbyPeaks@spec:3
+--edit change-assumption:Inventory.cachedTotal@spec:3
 ```
 
 ## Spec cues
