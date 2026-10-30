@@ -216,7 +216,7 @@ def resolve_target(model, root, target):
             owner = par["name"] if par else None
     else:
         if not isinstance(target, str) or "#" in target or "/" in target or not _TARGET_RE.match(target):
-            raise EditError("unknown target: %r" % (target,))
+            raise EditError("unknown target: %s" % (target,))
         parts = target.split(".")
         if len(parts) == 1:
             owner = member = None
@@ -430,7 +430,7 @@ def assumption_reach(model, root, name):
     if isinstance(name, dict):
         name = name.get("member") or name.get("owner")
     if not isinstance(name, str) or not _TARGET_RE.match(name):
-        raise EditError("unknown target: %r" % (name,))
+        raise EditError("unknown target: %s" % (name,))
     name = name.split(".")[-1]
     if len(name) < MIN_NAME:
         raise EditError("name too short to search reliably, use a symbol id: %s" % name)
