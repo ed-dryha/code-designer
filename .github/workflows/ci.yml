@@ -9,6 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Claude Code validator
+        run: |
+          curl -fsSL https://claude.ai/install.sh -o "$RUNNER_TEMP/install-claude.sh"
+          bash "$RUNNER_TEMP/install-claude.sh" 2.1.316
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/claude" --version
       - uses: astral-sh/setup-uv@v5
       - uses: actions/cache@v4
         with:
@@ -25,9 +31,7 @@ jobs:
           python3 scripts/build.py
           git diff --exit-code dist/ .claude-plugin/ .agents/
           test -z "$(git status --porcelain dist/ .claude-plugin/ .agents/)"
-      - name: Validate Claude Code plugin (non-blocking)
-        continue-on-error: true
+      - name: Validate Claude Code plugin
         run: claude plugin validate --strict dist/claude-code
-      - name: Validate marketplace root (non-blocking)
-        continue-on-error: true
+      - name: Validate marketplace root
         run: claude plugin validate .
